@@ -58,7 +58,7 @@ int main() {
 	  
 	mrf.set_pan(0xcafe);
 	// This is _our_ address
-	mrf.address64_write(0x000000000000001); 
+	mrf.address64_write(0x123456789abcdef0); 
 	
 	uint64_t addr64 = mrf.address64_read();
 	
@@ -83,7 +83,7 @@ int main() {
 				txTriggered = 0;
 			piUnlock(BUTTON_KEY);
 			printf("\ntxxxing...\n");
-			mrf.send64(0x0000000000000002, "Ricardo");
+			mrf.send64(0x0000000000000001, "acd");
 		}
 	}
 }
@@ -93,7 +93,7 @@ void interrupt_routine() {
 }
 
 void handle_rx() {
-    /*printf("\nreceived a packet ");
+    printf("\nreceived a packet ");
     printf("%d", mrf.get_rxinfo()->frame_length);
     printf(" bytes long\n");
     
@@ -102,18 +102,9 @@ void handle_rx() {
       for (int i = 0; i < mrf.get_rxinfo()->frame_length; i++) {
           printf("%c", mrf.get_rxbuf()[i]);
       }
-    }*/
+    }
     
-    //printf("%i", mrf.rx_datalength());
-
-	if (mrf.get_rxinfo()->rx_data[0] == 'a' && mrf.get_rxinfo()->rx_data[1] == 'c' && mrf.get_rxinfo()->rx_data[2] == 'd') {
-		printf("\nServiço de batida acionado\n");
-	}
-	if (mrf.get_rxinfo()->rx_data[0] == 'g' && mrf.get_rxinfo()->rx_data[1] == 'p' && mrf.get_rxinfo()->rx_data[2] == 's') {
-		printf("\nServiço de gps acionado\n");
-	}
-	
-    /*printf("ASCII data (relevant data):");
+    printf("ASCII data (relevant data):");
     for (int i = 0; i < mrf.rx_datalength(); i++) {
         printf("%c", mrf.get_rxinfo()->rx_data[i]);
     }
@@ -121,7 +112,7 @@ void handle_rx() {
     printf("\nLQI/RSSI=");
     printf("%d", mrf.get_rxinfo()->lqi);
     printf("/");
-    printf("%d\n", mrf.get_rxinfo()->rssi);*/
+    printf("%d\n", mrf.get_rxinfo()->rssi);
 }
 
 void handle_tx() {

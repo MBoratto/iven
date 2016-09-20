@@ -13,8 +13,7 @@ void handle_tx(void);
 const int pin_button = 17;
 static volatile int txTriggered = 0;
 
-PI_THREAD (buttonTrigger)
-{
+PI_THREAD (buttonTrigger) {
 	unsigned int debounceTime = 0;
 	
 	for(;;) {
@@ -58,7 +57,7 @@ int main() {
 	  
 	mrf.set_pan(0xcafe);
 	// This is _our_ address
-	mrf.address16_write(0x4203); 
+	mrf.address16_write(0x4202); 
 	
 	printf("%X\n", mrf.address16_read());
 	printf("%X\n\n", mrf.get_pan());
@@ -81,7 +80,7 @@ int main() {
 				txTriggered = 0;
 			piUnlock(BUTTON_KEY);
 			printf("txxxing...\n");
-			mrf.send16(0x6001, "Ricardo");
+			mrf.send16(0x6001, "Jessica");
 		}
 	}
 }
