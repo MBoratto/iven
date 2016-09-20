@@ -1,7 +1,7 @@
 #include <wiringPi.h>
 #include <bcm2835.h>
 #include <stdio.h>
-#include "mrf24j.h"
+#include "../MRF24J/mrf24j.h"
 
 #define BUTTON_KEY 0
 #define DEBOUNCE_TIME 100
@@ -107,12 +107,33 @@ void handle_rx() {
 	if(src_addr == 0x0000000000000003) {
 		printf("\nOla Marcelo\n");
 	}
-	if (mrf.get_rxinfo()->rx_data[0] == 'a' && mrf.get_rxinfo()->rx_data[1] == 'c' && mrf.get_rxinfo()->rx_data[2] == 'd') {
+	if (mrf.get_rxinfo()->rx_data[0] == 1) {
 		printf("\nServiço de batida acionado\n");
 	}
 	if (mrf.get_rxinfo()->rx_data[0] == 'g' && mrf.get_rxinfo()->rx_data[1] == 'p' && mrf.get_rxinfo()->rx_data[2] == 's') {
 		printf("\nServiço de gps acionado\n");
 	}
+	
+	printf("received a packet ");
+    printf("%d", mrf.get_rxinfo()->frame_length);
+    printf(" bytes long\n");
+    
+    if(mrf.get_bufferPHY()){
+      printf("Packet data (PHY Payload):");
+      for (int i = 0; i < mrf.get_rxinfo()->frame_length; i++) {
+          printf("%c", mrf.get_rxbuf()[i]);
+      }
+    }
+    
+    printf("\r\nASCII data (relevant data):");
+    for (int i = 0; i < mrf.rx_datalength(); i++) {
+        printf("%c", mrf.get_rxinfo()->rx_data[i]);
+    }
+    
+    printf("\r\nLQI/RSSI=");
+    printf("%d", mrf.get_rxinfo()->lqi);
+    printf("/");
+    printf("%d\n", mrf.get_rxinfo()->rssi);
 	
 }
 
