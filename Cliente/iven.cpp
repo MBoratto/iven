@@ -1,7 +1,7 @@
 #include <wiringPi.h>
 #include <bcm2835.h>
 #include <stdio.h>
-#include "mrf24j.h"
+#include "../MRF24J/mrf24j.h"
 
 #define BUTTON_KEY 0
 #define DEBOUNCE_TIME 100
