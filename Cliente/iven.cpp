@@ -13,7 +13,8 @@ void handle_tx(void);
 const int pin_button = 17;
 static volatile int txTriggered = 0;
 
-PI_THREAD (buttonTrigger) {
+PI_THREAD (buttonTrigger)
+{
 	unsigned int debounceTime = 0;
 	
 	for(;;) {
@@ -57,9 +58,11 @@ int main() {
 	  
 	mrf.set_pan(0xcafe);
 	// This is _our_ address
-	mrf.address16_write(0x4202); 
+	mrf.address64_write(0x123456789abcdef0); 
 	
-	printf("%X\n", mrf.address16_read());
+	uint64_t addr64 = mrf.address64_read();
+	
+	printf("%X%X%X%X\n", (word)((addr64>>48) & 0xffff), (word)((addr64>>32) & 0xffff), (word)((addr64>>16) & 0xffff), (word)(addr64 & 0xffff));
 	printf("%X\n\n", mrf.get_pan());
 
 	// uncomment if you want to receive any packet on this channel
@@ -79,8 +82,9 @@ int main() {
 			piLock(BUTTON_KEY);
 				txTriggered = 0;
 			piUnlock(BUTTON_KEY);
-			printf("txxxing...\n");
-			mrf.send16(0x6001, "Jessica");
+			printf("\ntxxxing...\n");
+			char msg[] = {1, '\0'};
+			mrf.send64(0x0000000000000001, msg);
 		}
 	}
 }
@@ -90,7 +94,7 @@ void interrupt_routine() {
 }
 
 void handle_rx() {
-    printf("received a packet ");
+    printf("\nreceived a packet ");
     printf("%d", mrf.get_rxinfo()->frame_length);
     printf(" bytes long\n");
     
@@ -101,12 +105,12 @@ void handle_rx() {
       }
     }
     
-    printf("\r\nASCII data (relevant data):");
+    printf("ASCII data (relevant data):");
     for (int i = 0; i < mrf.rx_datalength(); i++) {
         printf("%c", mrf.get_rxinfo()->rx_data[i]);
     }
     
-    printf("\r\nLQI/RSSI=");
+    printf("\nLQI/RSSI=");
     printf("%d", mrf.get_rxinfo()->lqi);
     printf("/");
     printf("%d\n", mrf.get_rxinfo()->rssi);
