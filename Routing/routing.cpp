@@ -1,24 +1,4 @@
-#include <wiringPi.h>
-#include <bcm2835.h>
-#include <stdio.h>
-#include <queue.h>
-#include <unordered_map.h>
-#include "../MRF24J/mrf24j.h"
-
-#define NUM_ATTEMPTS 3
-#define MSG_LIFETIME 60
-
-typedef struct _message_list {
-	char * message;
-	uint64_t address;
-	char number;
-	char attempts;
-} message_list;
-
-typedef struct _message_lifetime {
-	char number;
-	char lifetime;
-} message_lifetime;
+#include "routing.h"
 
 std::queue<message_list> message_queue;
 std::unordered_multimap<uint64_t, message_lifetime> message_map;
@@ -85,7 +65,7 @@ int handle_routing(void) {
 	}
 }
 
-bool new_message() {
+bool new_message(void) {
 	auto range = message_map.equal_range(dest_address);
 	if(range.first != range.second) {
 		for(auto it = range.first; it != range.second; it++) {
@@ -146,4 +126,12 @@ int handle_ack(void) {
 
 int handle_scan(void) {
 	// retreive address (future use - maybe)
+}
+
+int send_nack(uint64_t src_address) {
+	
+}
+
+int send_ack(uint64_t src_address) {
+	
 }

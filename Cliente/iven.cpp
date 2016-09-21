@@ -2,6 +2,7 @@
 #include <bcm2835.h>
 #include <stdio.h>
 #include "../MRF24J/mrf24j.h"
+//#include "../Routing/routing.h"
 
 #define BUTTON_KEY 0
 #define DEBOUNCE_TIME 100
@@ -58,7 +59,7 @@ int main() {
 	  
 	mrf.set_pan(0xcafe);
 	// This is _our_ address
-	mrf.address64_write(0x123456789abcdef0); 
+	mrf.address64_write(0x0000000000000002); 
 	
 	uint64_t addr64 = mrf.address64_read();
 	
@@ -94,6 +95,9 @@ void interrupt_routine() {
 }
 
 void handle_rx() {
+	
+	//handle_packets();
+	
     printf("\nreceived a packet ");
     printf("%d", mrf.get_rxinfo()->frame_length);
     printf(" bytes long\n");

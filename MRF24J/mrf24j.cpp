@@ -273,7 +273,7 @@ void Mrf24j::init(void) {
     set_interrupts();
     set_channel(12);
     // max power is by default.. just leave it...
-    // Set transmitter power - See “REGISTER 2-62: RF CONTROL 3 REGISTER (ADDRESS: 0x203)”.
+    write_long(MRF_RFCON3, 0xf8); // Set transmitter power - See “REGISTER 2-62: RF CONTROL 3 REGISTER (ADDRESS: 0x203)”.
     write_short(MRF_RFCTL, 0x04); //  – Reset RF state machine.
     write_short(MRF_RFCTL, 0x00); // part 2
     delay(1); // delay at least 192usec
