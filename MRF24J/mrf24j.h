@@ -190,6 +190,8 @@ class Mrf24j
         
         void address64_write(uint64_t address64);
         uint64_t address64_read(void);
+        
+        uint64_t get_source_address64(void) 
 
         void set_interrupts(void);
 

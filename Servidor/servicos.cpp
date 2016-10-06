@@ -94,13 +94,8 @@ void interrupt_routine() {
 
 void handle_rx() {
 
-	uint64_t src_addr = 0;
+	uint64_t src_addr = get_source_address64();
 	
-	for(int i = 0; i < 8; i++) {
-		
-			src_addr |= (uint64_t)mrf.read_long(0x30e + i) << 8*i; // recebe e armazena endereço da fonte
-		
-	}
 	if(src_addr == 0x123456789abcdef0) {
 		printf("\nOla Jessica\n");
 	}
