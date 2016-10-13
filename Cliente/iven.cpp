@@ -90,10 +90,10 @@ int main() {
 			mrf.send64(0x0000000000000001, msg);
 		}
 		if(millis() > sendTime) {
-
 			std::queue<message_list> message_queue = get_queue();
 
 			while(!message_queue.empty()) {
+				printf("\ntxxxing queue...\n");
 				message_list tmp_list = message_queue.front();
 				message_queue.pop();
 				mrf.send64(tmp_list.address, (char *)tmp_list.message);

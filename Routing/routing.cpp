@@ -17,10 +17,13 @@ void handle_packets(Mrf24j& mrf) {
 	char routing_control = (rx_data[0] & 0xe0) >> 5;
 	message_number = rx_data[0] & 0x1f;
 	printf("Control packet: %i; Routing Control: %i; Msg #: %i\n", rx_data[0], routing_control, message_number);
-	
+
 	self_address = mrf.address64_read();
+	printf("Self address read \n");
 	dest_address = mrf.get_dest_address64();
+	printf("Dest address read...\n");
 	src_address = mrf.get_src_address64();
+	printf("Src addres read...\n");
 	
 	switch (routing_control) {
 		case 0:
@@ -73,7 +76,9 @@ void handle_routing(void) {
 			message_queue.push(tmp_list);
 			
 			send_nack(src_address);// return node ack
+			printf("Nack Sent! \n");
 		} else {
+			printf("\n\n Flood! \n\n");
 			// return flooding control
 		}
 	}

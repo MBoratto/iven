@@ -201,7 +201,7 @@ void Mrf24j::send64(uint64_t dest64, char * data) {
     write_long(i++, bytes_MHR_64+ignoreBytes+len);
 
     // 0 | pan compression | ack | no security | no data pending | data frame[3 bits]
-    write_long(i++, 0b01100001); // first byte of Frame Control
+    write_long(i++, 0b01000001); // first byte of Frame Control
     // 16 bit source, 802.15.4 (2003), 16 bit dest,
     write_long(i++, 0b11001100); // second byte of frame control
     write_long(i++, 1);  // sequence number 1
@@ -237,7 +237,7 @@ void Mrf24j::send64(uint64_t dest64, char * data) {
         write_long(i++, data[q]);
     }
     // ack on, and go!
-    write_short(MRF_TXNCON, (1<<MRF_TXNACKREQ | 1<<MRF_TXNTRIG));
+    write_short(MRF_TXNCON, (1<<MRF_TXNTRIG));
 }
 
 void Mrf24j::set_interrupts(void) {
