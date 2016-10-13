@@ -384,11 +384,11 @@ void Mrf24j::check_flags(void (*rx_handler)(void), void (*tx_handler)(void)){
 }
 
 /**
- * Set RX mode to promiscuous, or normal
+ * Set RX mode to promiscuous (without auto ack), or normal
  */
 void Mrf24j::set_promiscuous(boolean enabled) {
     if (enabled) {
-        write_short(MRF_RXMCR, 0x01);
+        write_short(MRF_RXMCR, 0x21);
     } else {
         write_short(MRF_RXMCR, 0x00);
     }
