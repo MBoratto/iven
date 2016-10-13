@@ -16,21 +16,27 @@ int handle_packets(void) {
 	
 	switch (routing_control) {
 		case 0:
+			printf("\n Handling Message \n");
 			handle_message();
 			break;
 		case 1: 
+			printf("\n Handling Routing \n");
 			handle_routing();
 			break;
 		case 2:
+			printf("\n Handling Flooding \n");
 			handle_flooding();
 			break;
 		case 3:
+			printf("\n Handling Fowarding \n");
 			handle_fowarding();
 			break;
 		case 4:
+			printf("\n Handling Nack \n");
 			handle_nack();
 			break;
 		case 5:
+			printf("\n Handling scan \n");
 			handle_scan();
 			break;
 	}
@@ -47,6 +53,7 @@ int handle_message(void) {
 int handle_routing(void) {
 	if(self_address == dest_address) {
 		// handle message and return ack
+		printf("\n\n Message Arrived! \n\n");
 		send_ack();
 	} else {
 		if(new_message()) {
@@ -122,16 +129,18 @@ int handle_nack(void) {
 
 int handle_ack(void) {
 	//remove messages from pending 
+	return 0;
 }
 
 int handle_scan(void) {
 	// retreive address (future use - maybe)
+	return 0;
 }
 
 int send_nack(uint64_t src_address) {
-	
+	return 0;
 }
 
 int send_ack(uint64_t src_address) {
-	
+	return 0;
 }

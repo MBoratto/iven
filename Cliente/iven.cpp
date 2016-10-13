@@ -2,9 +2,10 @@
 #include <bcm2835.h>
 #include <stdio.h>
 #include "../MRF24J/mrf24j.h"
-//#include "../Routing/routing.h"
+#include "../Routing/routing.h"
 
 #define BUTTON_KEY 0
+#define MESSAGE_KEY 1
 #define DEBOUNCE_TIME 100
 
 void interrupt_routine(void);
@@ -37,6 +38,28 @@ PI_THREAD (buttonTrigger)
 	}
 }
 
+PI_THREAD (messageSender)
+{
+	
+	for(;;) {
+		
+		std::queue<message_list> tmp_queue;
+		piLock(MESSAGE_KEY);
+		while(!message_queue.empty()) {
+			message_list tmp_list = message_queue.front();
+			message_queue.pop();
+			tmp_queue.push(tmp_list);
+			mrf.send64(tmp_list.address, tmp_list.message);
+		}
+		while(!tmp_queue.empty()) {
+			message_queue.push(tmp_queue.front());
+			tmp_queue.pop();
+		}
+		piUnlock(MESSAGE_KEY);
+		delay(500);
+	}
+}
+
 const int pin_reset = 23;
 const int pin_cs = 24; // default CS pin on ATmega8/168/328
 const int pin_interrupt = 25; // default interrupt pin on ATmega8/168/328
@@ -47,6 +70,7 @@ int main() {
 	wiringPiSetupGpio();
 	
 	piThreadCreate (buttonTrigger);
+	piThreadCreate (messageSender);
 	
 	bcm2835_init();
 	bcm2835_spi_begin();
@@ -96,7 +120,9 @@ void interrupt_routine() {
 
 void handle_rx() {
 	
-	//handle_packets();
+	piLock(MESSAGE_KEY);
+	handle_packets();
+	piUnlock(MESSAGE_KEY);
 	
     printf("\nreceived a packet ");
     printf("%d", mrf.get_rxinfo()->frame_length);
