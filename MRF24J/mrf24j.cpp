@@ -130,7 +130,7 @@ uint64_t Mrf24j::get_source_address64(void) {
 	
 	for(int i = 0; i < 8; i++) {
 		
-			src_addr |= (uint64_t)mrf.read_long(0x30e + i) << 8*i; // recebe e armazena endereço da fonte
+			src_addr |= (uint64_t)read_long(0x30e + i) << 8*i; // recebe e armazena endereço da fonte
 		
 	}
 	
