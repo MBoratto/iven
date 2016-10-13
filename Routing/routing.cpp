@@ -12,9 +12,11 @@ std::queue<message_list> get_queue(void) {
 }
 
 void handle_packets(Mrf24j& mrf) {
+	printf("Packet received! Handling...\n");
 	rx_data = mrf.get_rxinfo()->rx_data;
-	char routing_control = (rx_data[0] & 0xe0) >> 6;
+	char routing_control = (rx_data[0] & 0xe0) >> 5;
 	message_number = rx_data[0] & 0x1f;
+	printf("Control packet: %i; Routing Control: %i; Msg #: %i\n", rx_data[0], routing_control, message_number);
 	
 	self_address = mrf.address64_read();
 	dest_address = mrf.get_dest_address64();

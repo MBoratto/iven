@@ -59,7 +59,7 @@ int main() {
 	  
 	mrf.set_pan(0xcafe);
 	// This is _our_ address
-	mrf.address64_write(0x0000000000000001); 
+	mrf.address64_write(0x0000000000000002); 
 	
 	uint64_t addr64 = mrf.address64_read();
 	
@@ -87,7 +87,7 @@ int main() {
 			piUnlock(BUTTON_KEY);
 			printf("\ntxxxing...\n");
 			char msg[] = {1, '\0'};
-			mrf.send64(0x0000000000000002, msg);
+			mrf.send64(0x0000000000000001, msg);
 		}
 		if(millis() > sendTime) {
 
