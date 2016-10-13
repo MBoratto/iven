@@ -13,8 +13,8 @@ std::queue<message_list> get_queue(void) {
 
 void handle_packets(Mrf24j& mrf) {
 	rx_data = mrf.get_rxinfo()->rx_data;
-	char routing_control = (rx_data[0] & 0xc0) >> 6;
-	message_number = rx_data[0] & 0x3f;
+	char routing_control = (rx_data[0] & 0xe0) >> 6;
+	message_number = rx_data[0] & 0x1f;
 	
 	self_address = mrf.address64_read();
 	dest_address = mrf.get_dest_address64();

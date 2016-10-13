@@ -5,7 +5,6 @@
 #include "../Routing/routing.h"
 
 #define BUTTON_KEY 0
-#define MESSAGE_KEY 1
 #define DEBOUNCE_TIME 100
 
 void interrupt_routine(void);
@@ -60,7 +59,7 @@ int main() {
 	  
 	mrf.set_pan(0xcafe);
 	// This is _our_ address
-	mrf.address64_write(0x0000000000000002); 
+	mrf.address64_write(0x0000000000000001); 
 	
 	uint64_t addr64 = mrf.address64_read();
 	
@@ -88,7 +87,7 @@ int main() {
 			piUnlock(BUTTON_KEY);
 			printf("\ntxxxing...\n");
 			char msg[] = {1, '\0'};
-			mrf.send64(0x0000000000000001, msg);
+			mrf.send64(0x0000000000000002, msg);
 		}
 		if(millis() > sendTime) {
 
@@ -111,9 +110,7 @@ void interrupt_routine() {
 
 void handle_rx() {
 	
-	piLock(MESSAGE_KEY);
 	handle_packets(mrf);
-	piUnlock(MESSAGE_KEY);
 	
     printf("\nreceived a packet ");
     printf("%d", mrf.get_rxinfo()->frame_length);
