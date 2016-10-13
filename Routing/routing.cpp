@@ -4,11 +4,17 @@ std::queue<message_list> message_queue;
 std::unordered_multimap<uint64_t, message_lifetime> message_map;
 
 char message_number;
+uint8_t * rx_data;
 uint64_t self_address, dest_address, src_address;
 
-int handle_packets(void) {
-	char routing_control = (mrf.get_rxinfo()->rx_data[0] & 0xc0) >> 6;
-	message_number = mrf.get_rxinfo()->rx_data[0] & 0x3f;
+std::queue<message_list> get_queue(void) {
+	return message_queue;
+}
+
+void handle_packets(Mrf24j& mrf) {
+	rx_data = mrf.get_rxinfo()->rx_data;
+	char routing_control = (rx_data[0] & 0xc0) >> 6;
+	message_number = rx_data[0] & 0x3f;
 	
 	self_address = mrf.address64_read();
 	dest_address = mrf.get_dest_address64();
@@ -28,12 +34,12 @@ int handle_packets(void) {
 			handle_flooding();
 			break;
 		case 3:
-			printf("\n Handling Fowarding \n");
-			handle_fowarding();
-			break;
-		case 4:
 			printf("\n Handling Nack \n");
 			handle_nack();
+			break;
+		case 4:
+			printf("\n Handling Ack \n");
+			handle_ack();
 			break;
 		case 5:
 			printf("\n Handling scan \n");
@@ -42,23 +48,23 @@ int handle_packets(void) {
 	}
 }
 
-int handle_message(void) {
+void handle_message(void) {
 	if(self_address == dest_address) {
 		
 	} else {
-		return 0;
+
 	}
 }
 
-int handle_routing(void) {
+void handle_routing(void) {
 	if(self_address == dest_address) {
 		// handle message and return ack
 		printf("\n\n Message Arrived! \n\n");
-		send_ack();
+		send_ack(src_address);
 	} else {
 		if(new_message()) {
 			message_list tmp_list;
-			tmp_list.message = mrf.get_rxinfo()->rx_data;
+			tmp_list.message = rx_data;
 			tmp_list.address = dest_address;
 			tmp_list.number = message_number ;
 			tmp_list.attempts = NUM_ATTEMPTS;
@@ -67,7 +73,6 @@ int handle_routing(void) {
 			send_nack(src_address);// return node ack
 		} else {
 			// return flooding control
-			return 0;
 		}
 	}
 }
@@ -84,12 +89,12 @@ bool new_message(void) {
 	message_lifetime tmp_message;
 	tmp_message.number = message_number;
 	tmp_message.lifetime = MSG_LIFETIME;
-	message_map.insert(std::make_pair<uint64_t, message_lifetime>(dest_address, tmp_message));
+	message_map.insert({dest_address, tmp_message});
 	return true;
 }
 
-int handle_flooding(void) {
-	uint64_t dest_addr = routed_dest_address64(); // correct!
+void handle_flooding(void) {
+	uint64_t dest_addr = 0; //routed_dest_address64(); // correct!
 	std::queue<message_list> tmp_queue;
 	while(!message_queue.empty()) {
 		message_list tmp_list = message_queue.front();
@@ -109,9 +114,9 @@ int handle_flooding(void) {
 	}
 }
 
-int handle_nack(void) {
+void handle_nack(void) {
 	//check if is to me
-	uint64_t dest_addr = routed_dest_address64(); // correct!
+	uint64_t dest_addr = 0; //routed_dest_address64(); // correct!
 	std::queue<message_list> tmp_queue;
 	while(!message_queue.empty()) {
 		message_list tmp_list = message_queue.front();

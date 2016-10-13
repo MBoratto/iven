@@ -125,7 +125,7 @@ uint64_t Mrf24j::address64_read(void) {
     return a64h << 8 | read_short(MRF_EADR0);
 }
 
-uint64_t Mrf24j::get_source_address64(void) {
+uint64_t Mrf24j::get_src_address64(void) {
 	uint64_t src_addr = 0;
 	
 	for(int i = 0; i < 8; i++) {
@@ -136,6 +136,19 @@ uint64_t Mrf24j::get_source_address64(void) {
 	
 	return src_addr;
 }
+
+uint64_t Mrf24j::get_dest_address64(void) {
+	uint64_t src_addr = 0;
+	
+	for(int i = 0; i < 8; i++) {
+		
+			src_addr |= (uint64_t)read_long(0x30e + i) << 8*i; // recebe e armazena endereço da fonte
+		
+	}
+	
+	return src_addr;
+}
+
 /**
  * Simple send 16, with acks, not much of anything.. assumes src16 and local pan only.
  * @param data

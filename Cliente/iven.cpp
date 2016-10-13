@@ -38,28 +38,6 @@ PI_THREAD (buttonTrigger)
 	}
 }
 
-PI_THREAD (messageSender)
-{
-	
-	for(;;) {
-		
-		std::queue<message_list> tmp_queue;
-		piLock(MESSAGE_KEY);
-		while(!message_queue.empty()) {
-			message_list tmp_list = message_queue.front();
-			message_queue.pop();
-			tmp_queue.push(tmp_list);
-			mrf.send64(tmp_list.address, tmp_list.message);
-		}
-		while(!tmp_queue.empty()) {
-			message_queue.push(tmp_queue.front());
-			tmp_queue.pop();
-		}
-		piUnlock(MESSAGE_KEY);
-		delay(500);
-	}
-}
-
 const int pin_reset = 23;
 const int pin_cs = 24; // default CS pin on ATmega8/168/328
 const int pin_interrupt = 25; // default interrupt pin on ATmega8/168/328
@@ -70,7 +48,6 @@ int main() {
 	wiringPiSetupGpio();
 	
 	piThreadCreate (buttonTrigger);
-	piThreadCreate (messageSender);
 	
 	bcm2835_init();
 	bcm2835_spi_begin();
@@ -101,6 +78,8 @@ int main() {
 
 	wiringPiISR(pin_interrupt, INT_EDGE_BOTH, &interrupt_routine); // interrupt 0 equivalent to pin 2(INT0) on ATmega8/168/328
 	
+	unsigned int sendTime = 0;
+	
 	for(;;) {
 		mrf.check_flags(&handle_rx, &handle_tx);
 		if (txTriggered) {
@@ -110,6 +89,18 @@ int main() {
 			printf("\ntxxxing...\n");
 			char msg[] = {1, '\0'};
 			mrf.send64(0x0000000000000001, msg);
+		}
+		if(millis() > sendTime) {
+
+			std::queue<message_list> message_queue = get_queue();
+
+			while(!message_queue.empty()) {
+				message_list tmp_list = message_queue.front();
+				message_queue.pop();
+				mrf.send64(tmp_list.address, (char *)tmp_list.message);
+			}
+			
+			sendTime = millis() + 500;
 		}
 	}
 }
@@ -121,7 +112,7 @@ void interrupt_routine() {
 void handle_rx() {
 	
 	piLock(MESSAGE_KEY);
-	handle_packets();
+	handle_packets(mrf);
 	piUnlock(MESSAGE_KEY);
 	
     printf("\nreceived a packet ");
