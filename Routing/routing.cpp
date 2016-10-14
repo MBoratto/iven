@@ -83,7 +83,7 @@ void handle_routing(Mrf24j& mrf) {
 			message_queue.push(tmp_list);
 			printf("\nMessage on queue");
 			send_nack(mrf, src_address, dest_address);// return node ack
-			printf("\nNack Sent! \n");
+			printf("\nNack Sent!\n");
 		} else {
 			printf("\nFlood! \n\n");
 			send_flood(mrf, src_address, dest_address);
@@ -226,19 +226,19 @@ int handle_scan(void) {
 }
 
 void send_flood(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
-	printf("Sending flood...\nDest addr: %X\tMsg addr: %X\tMsg #: %i", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
-	char ack_msg[] = {(char)(0b01000000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
-	mrf.send64(src_addr, ack_msg);
+	printf("\nSending flood...\nDest addr: %X\tMsg addr: %X\tMsg #: %i\n", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
+	char flood_msg[] = {(char)(0b01000000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
+	mrf.send64(src_addr, flood_msg);
 }
 
 void send_nack(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
-	printf("\nSending nack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
+	printf("\n\nSending nack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i\n", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char nack_msg[] = {(char)(0b01100000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(src_addr, nack_msg);
 }
 
 void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
-	printf("Sending final ack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
+	printf("\nSending final ack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(dest_addr, ack_msg);
 }
