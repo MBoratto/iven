@@ -108,7 +108,7 @@ bool new_message(void) {
 }
 
 void handle_flooding(void) {
-	//if(self_address == dest_address) {
+	if(self_address == dest_address) {
 		uint64_t dest_addr = routed_dest_address64();
 		std::queue<message_list> tmp_queue;
 		while(!message_queue.empty()) {
@@ -127,12 +127,12 @@ void handle_flooding(void) {
 			message_queue.push(tmp_queue.front());
 			tmp_queue.pop();
 		}
-	//}
+	}
 }
 
 void handle_nack(void) {
 	//check if is to me
-	//if(self_address == dest_address) {
+	if(self_address == dest_address) {
 		uint64_t dest_addr = routed_dest_address64();
 		std::queue<message_list> tmp_queue;
 		printf("\nMSG addr: %X\tNumber: %i\n", (int)(dest_addr & 0xff), message_number);
@@ -152,14 +152,14 @@ void handle_nack(void) {
 			tmp_queue.pop();
 		}
 		printf("\n***********************************\n");
-	//}
+	}
 }
 
 uint64_t routed_dest_address64(void) {
 	uint64_t dest_addr = 0;
 	
 	for(int i = 0; i < 8; i++) {
-			dest_addr |= (uint64_t)rx_data[i+1] << 8*i; // recebe e armazena endereço da fonte
+			dest_addr |= (uint64_t)rx_data[8-i] << 8*i; // recebe e armazena endereço da fonte
 		
 	}
 	

@@ -92,14 +92,13 @@ int main() {
 		if(millis() > sendTime) {
 			std::queue<message_list> message_queue = get_queue();
 
-			printf("\n##############txxxing queue...##############\n");
 			while(!message_queue.empty()) {
+				printf("\n##############txxxing queue...##############\n");
 				message_list tmp_list = message_queue.front();
 				message_queue.pop();
-				printf("\nAddr: %X\tNumber: %i\t MSG: %i", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0]);
+				printf("\nAddr: %X\tNumber: %i\t MSG: %i\t From: %X", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0], tmp_list.message[8]);
 				mrf.send64(tmp_list.address, (char *)tmp_list.message);
 			}
-			printf("\n############################################\n");
 			sendTime = millis() + 500;
 		}
 	}
