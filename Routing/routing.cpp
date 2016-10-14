@@ -41,7 +41,7 @@ void handle_packets(Mrf24j& mrf) {
 			break;
 		case 4:
 			printf("\n Handling Ack \n");
-			handle_ack();
+			handle_ack(mrf);
 			break;
 		case 5:
 			printf("\n Handling scan \n");
@@ -53,17 +53,20 @@ void handle_packets(Mrf24j& mrf) {
 void handle_message(void) {
 	if(self_address == dest_address) {
 		
-	} else {
-
 	}
 }
 
 void handle_routing(Mrf24j& mrf) {
 	if(self_address == dest_address) {
-		// handle message and return ack
-		printf("\n\n Message Arrived! \n\n");
-		uint64_t dest_addr = routed_dest_address64();
-		send_ack(mrf, dest_addr, self_address);
+		if(new_message()) {
+			// handle message and return ack
+			printf("\n\n Message Arrived! \n\n");
+			uint64_t dest_addr = routed_dest_address64();
+			send_ack(mrf, dest_addr, self_address);
+		} else {
+			printf("\n\n Flood! \n\n");
+			send_flood(mrf, src_address, dest_address);
+		}
 	} else {
 		if(new_message()) {
 			message_list tmp_list;
@@ -72,12 +75,12 @@ void handle_routing(Mrf24j& mrf) {
 			tmp_list.number = message_number ;
 			tmp_list.attempts = NUM_ATTEMPTS;
 			message_queue.push(tmp_list);
-			
+
 			send_nack(mrf, src_address, dest_address);// return node ack
 			printf("Nack Sent! \n");
 		} else {
 			printf("\n\n Flood! \n\n");
-			// return flooding control
+			send_flood(mrf, src_address, dest_address);
 		}
 	}
 }
@@ -99,23 +102,25 @@ bool new_message(void) {
 }
 
 void handle_flooding(void) {
-	uint64_t dest_addr = 0; //routed_dest_address64(); // correct!
-	std::queue<message_list> tmp_queue;
-	while(!message_queue.empty()) {
-		message_list tmp_list = message_queue.front();
-		message_queue.pop();
-		if(tmp_list.address == dest_addr && tmp_list.number == message_number) {
-			tmp_list.attempts--;
-			if(tmp_list.attempts != 0) {
-				tmp_queue.push(tmp_list);
+	if(self_address == dest_address) {
+		uint64_t dest_addr = routed_dest_address64();
+		std::queue<message_list> tmp_queue;
+		while(!message_queue.empty()) {
+			message_list tmp_list = message_queue.front();
+			message_queue.pop();
+			if(tmp_list.address == dest_addr && tmp_list.number == message_number) {
+				tmp_list.attempts--;
+				if(tmp_list.attempts != 0) {
+					tmp_queue.push(tmp_list);
+				}
+				break;
 			}
-			break;
+			tmp_queue.push(tmp_list);
 		}
-		tmp_queue.push(tmp_list);
-	}
-	while(!tmp_queue.empty()) {
-		message_queue.push(tmp_queue.front());
-		tmp_queue.pop();
+		while(!tmp_queue.empty()) {
+			message_queue.push(tmp_queue.front());
+			tmp_queue.pop();
+		}
 	}
 }
 
@@ -143,7 +148,6 @@ uint64_t routed_dest_address64(void) {
 	uint64_t dest_addr = 0;
 	
 	for(int i = 0; i < 8; i++) {
-		
 			dest_addr |= (uint64_t)rx_data[i+1] << 8*i; // recebe e armazena endereço da fonte
 		
 	}
@@ -151,44 +155,64 @@ uint64_t routed_dest_address64(void) {
 	return dest_addr;
 }
 
-void handle_ack(void) {
+void handle_ack(Mrf24j& mrf) {
 	
 	if(self_address == dest_address) {
 		auto range = message_map.equal_range(self_address);
 		if(range.first != range.second) {
 			for(auto it = range.first; it != range.second; it++) {
-				if(it->second.number == message_number) {
+				if(it->second.number == (message_number - 1)) {
 					message_map.erase(it);
 					break;
 				} 
 			}
 		}
 	} else {
-		// Remove corresponding message from routing queue
-		std::queue<message_list> tmp_queue;
-		uint64_t msg_addr = routed_dest_address64();
-		printf("MSG addr: %lld  Number: %i\n\n", msg_addr, message_number);
-		while(!message_queue.empty()) {
-			message_list tmp_list = message_queue.front();
-			message_queue.pop();
-			printf("Addr: %lld Number: %i", tmp_list.address, tmp_list.number);
-			if(tmp_list.address == msg_addr && tmp_list.number == message_number) {
-				printf("Pop messsage from queue");
-				break;
+		if(new_message()) {
+			// Remove corresponding message from routing queue
+			std::queue<message_list> tmp_queue;
+			uint64_t msg_addr = routed_dest_address64();
+			printf("MSG addr: %lld  Number: %i\n\n", msg_addr, message_number);
+			while(!message_queue.empty()) {
+				message_list tmp_list = message_queue.front();
+				message_queue.pop();
+				printf("Addr: %lld Number: %i", tmp_list.address, tmp_list.number);
+				if(tmp_list.address == msg_addr && tmp_list.number == (message_number - 1)) {
+					printf("Pop messsage from queue");
+					break;
+				}
+				tmp_queue.push(tmp_list);
 			}
-			tmp_queue.push(tmp_list);
+			while(!tmp_queue.empty()) {
+				message_queue.push(tmp_queue.front());
+				tmp_queue.pop();
+			}
+			// Add final ack message to queue for routing to destination
+			message_list tmp_list;
+			tmp_list.message = rx_data;
+			tmp_list.address = dest_address;
+			tmp_list.number = message_number ;
+			tmp_list.attempts = NUM_ATTEMPTS;
+			message_queue.push(tmp_list);
+
+			send_nack(mrf, src_address, dest_address);// return node ack
+			printf("Nack Sent! \n");
+		} else {
+			printf("\n\n Flood! \n\n");
+			send_flood(mrf, src_address, dest_address);
 		}
-		while(!tmp_queue.empty()) {
-			message_queue.push(tmp_queue.front());
-			tmp_queue.pop();
-		}
-		// Add final ack message to queue for routing to destination
 	}
 }
 
 int handle_scan(void) {
 	// retreive address (future use - maybe)
 	return 0;
+}
+
+void send_flood(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
+	printf("Sending flood. dest:%lld, msg:%lld", dest_addr, msg_address);
+	char ack_msg[] = {(char)(0b01000000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
+	mrf.send64(src_addr, ack_msg);
 }
 
 void send_nack(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
@@ -199,6 +223,6 @@ void send_nack(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
 
 void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	printf("Sending ack. dest:%lld, msg:%lld", dest_addr, msg_address);
-	char ack_msg[] = {(char)(0b10000000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
+	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(dest_addr, ack_msg);
 }

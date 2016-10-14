@@ -341,6 +341,7 @@ void Mrf24j::interrupt_handler(void) {
         // buffer data bytes
         int rd_ptr = 0;
         // from (0x301 + bytes_MHR) to (0x301 + frame_length - bytes_nodata - 1)
+        
         for (int i = 0; i < (frame_length - bytes_nodata_R); i++) {
             rx_info.rx_data[rd_ptr++] = read_long(0x301 + bytes_MHR_R + i);
         }
