@@ -167,10 +167,13 @@ void handle_ack(void) {
 		// Remove corresponding message from routing queue
 		std::queue<message_list> tmp_queue;
 		uint64_t msg_addr = routed_dest_address64();
+		printf("MSG addr: %lld  Number: %i\n\n", msg_addr, message_number);
 		while(!message_queue.empty()) {
 			message_list tmp_list = message_queue.front();
 			message_queue.pop();
+			printf("Addr: %lld Number: %i", tmp_list.address, tmp_list.number);
 			if(tmp_list.address == msg_addr && tmp_list.number == message_number) {
+				printf("Pop messsage from queue");
 				break;
 			}
 			tmp_queue.push(tmp_list);
@@ -188,12 +191,14 @@ int handle_scan(void) {
 	return 0;
 }
 
-void send_nack(Mrf24j& mrf, uint64_t src_address, uint64_t msg_address) {
+void send_nack(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
+	printf("Sending nack. dest:%lld, msg:%lld", src_addr, msg_address);
 	char nack_msg[] = {(char)(0b01100000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
-	mrf.send64(src_address, nack_msg);
+	mrf.send64(src_addr, nack_msg);
 }
 
 void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
+	printf("Sending ack. dest:%lld, msg:%lld", dest_addr, msg_address);
 	char ack_msg[] = {(char)(0b10000000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(dest_addr, ack_msg);
 }
