@@ -23,8 +23,8 @@ void handle_packets(Mrf24j& mrf) {
 	dest_address = mrf.get_dest_address64();
 	src_address = mrf.get_src_address64();
 	
-	printf("Self addr: %i\tDest addr: %i\tSrc addr: %i", (int)(self_address & 0xff), (int)(dest_address & 0xff), (int)(src_address & 0xff));
-	printf("------------------------------------\n");
+	printf("Self addr: %X\tDest addr: %X\tSrc addr: %X", (int)(self_address & 0xff), (int)(dest_address & 0xff), (int)(src_address & 0xff));
+	printf("\n------------------------------------\n");
 	
 	switch (routing_control) {
 		case 0:
@@ -135,10 +135,14 @@ void handle_nack(void) {
 	//if(self_address == dest_address) {
 		uint64_t dest_addr = routed_dest_address64();
 		std::queue<message_list> tmp_queue;
+		printf("\nMSG addr: %X\tNumber: %i\n", (int)(dest_addr & 0xff), message_number);
+		printf("\n***********Message Queue***********\n");
 		while(!message_queue.empty()) {
 			message_list tmp_list = message_queue.front();
 			message_queue.pop();
+			printf("\nAddr: %X\tNumber: %i", (int)(tmp_list.address & 0xff), tmp_list.number);
 			if(tmp_list.address == dest_addr && tmp_list.number == message_number) {
+				printf("\n\nPop messsage from queue\n");
 				break;
 			}
 			tmp_queue.push(tmp_list);
@@ -147,6 +151,7 @@ void handle_nack(void) {
 			message_queue.push(tmp_queue.front());
 			tmp_queue.pop();
 		}
+		printf("\n***********************************\n");
 	//}
 }
 
@@ -177,18 +182,18 @@ void handle_ack(Mrf24j& mrf) {
 		printf("Nack Sent! \n");
 	} else {
 		if(new_message()) {
-			printf("\nNew final ack message\n\n");
+			printf("\nNew final ack message\n");
 			// Remove corresponding message from routing queue
 			std::queue<message_list> tmp_queue;
 			uint64_t msg_addr = routed_dest_address64();
-			printf("\nMSG addr: %i\tNumber: %i\n", (int)(msg_addr & 0xff), message_number);
+			printf("\nMSG addr: %X\tNumber: %i\n", (int)(msg_addr & 0xff), message_number);
 			printf("\n***********Message Queue***********\n");
 			while(!message_queue.empty()) {
 				message_list tmp_list = message_queue.front();
 				message_queue.pop();
-				printf("\nAddr: %i\tNumber: %i", (int)(tmp_list.address & 0xff), tmp_list.number);
+				printf("\nAddr: %X\tNumber: %i", (int)(tmp_list.address & 0xff), tmp_list.number);
 				if(tmp_list.address == msg_addr && tmp_list.number == (message_number - 1)) {
-					printf("\n\nPop messsage from queue\n\n");
+					printf("\n\nPop messsage from queue\n");
 					break;
 				}
 				tmp_queue.push(tmp_list);
@@ -197,7 +202,7 @@ void handle_ack(Mrf24j& mrf) {
 				message_queue.push(tmp_queue.front());
 				tmp_queue.pop();
 			}
-			printf("\n***********************************\n\n");
+			printf("\n***********************************\n");
 			// Add final ack message to queue for routing to destination
 			message_list tmp_list;
 			tmp_list.message = rx_data;
@@ -207,7 +212,7 @@ void handle_ack(Mrf24j& mrf) {
 			message_queue.push(tmp_list);
 
 			send_nack(mrf, src_address, dest_address);// return node ack
-			printf("Nack Sent! \n");
+			printf("\nNack Sent!\n");
 		} else {
 			printf("\n\n Flood! \n\n");
 			send_flood(mrf, src_address, dest_address);
@@ -221,19 +226,19 @@ int handle_scan(void) {
 }
 
 void send_flood(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
-	printf("Sending flood. dest:%lld, msg:%lld", src_addr, msg_address);
+	printf("Sending flood...\nDest addr: %X\tMsg addr: %X\tMsg #: %i", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char ack_msg[] = {(char)(0b01000000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(src_addr, ack_msg);
 }
 
 void send_nack(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
-	printf("Sending nack. dest:%lld, msg:%lld", src_addr, msg_address);
+	printf("\nSending nack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char nack_msg[] = {(char)(0b01100000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(src_addr, nack_msg);
 }
 
 void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
-	printf("Sending ack. dest:%lld, msg:%lld", dest_addr, msg_address);
+	printf("Sending final ack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(dest_addr, ack_msg);
 }
