@@ -188,11 +188,11 @@ int handle_scan(void) {
 }
 
 void send_nack(Mrf24j& mrf, uint64_t src_address, uint64_t msg_address) {
-	char nack_msg[] = {(0b01100000 | message_number), ((msg_address>>56) & 0xff), ((msg_address>>48) & 0xff), ((msg_address>>40) & 0xff), ((msg_address>>32) & 0xff), ((msg_address>>24) & 0xff), ((msg_address>>16) & 0xff), ((msg_address>>8) & 0xff), (msg_address & 0xff), '\0'};
+	char nack_msg[] = {(char)(0b01100000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(src_address, nack_msg);
 }
 
 void send_ack(Mrf24j& mrf, uint64_t dest_addr) {
-	char ack_msg[] = {(0b10000000 | message_number), '\0'};
+	char ack_msg[] = {(char)(0b10000000 | message_number), '\0'};
 	mrf.send64(dest_addr, ack_msg);
 }
