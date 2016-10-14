@@ -86,7 +86,7 @@ int main() {
 				txTriggered = 0;
 			piUnlock(BUTTON_KEY);
 			printf("\ntxxxing...\n");
-			char msg[] = {1, '\0'};
+			char msg[] = {0b00100000, ((addr64>>56) & 0xff), ((addr64>>48) & 0xff), ((addr64>>40) & 0xff), ((addr64>>32) & 0xff), ((addr64>>24) & 0xff), ((addr64>>16) & 0xff), ((addr64>>8) & 0xff), (addr64 & 0xff), '\0'};
 			mrf.send64(0x0000000000000001, msg);
 		}
 		if(millis() > sendTime) {

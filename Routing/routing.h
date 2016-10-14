@@ -26,14 +26,14 @@ typedef struct _message_lifetime {
 
 void handle_packets(Mrf24j& mrf);
 void handle_message(void);
-void handle_routing(void);
+void handle_routing(Mrf24j& mrf);
 bool new_message(void);
 void handle_flooding(void);
 void handle_nack(void);
-int handle_ack(void);
-int handle_scan(void);
-int send_nack(uint64_t);
-int send_ack(uint64_t);
+void handle_ack(void);
+void handle_scan(void);
+void send_nack(Mrf24j& mrf, uint64_t src_address, uint64_t msg_address);
+void send_ack(Mrf24j& mrf, uint64_t dest_addr);
 std::queue<message_list> get_queue(void);
 
 #endif  /* LIB_ROUTING_H */
