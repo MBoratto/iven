@@ -167,6 +167,8 @@ void handle_ack(Mrf24j& mrf) {
 				} 
 			}
 		}
+		send_nack(mrf, src_address, dest_address);// return node ack
+		printf("Nack Sent! \n");
 	} else {
 		if(new_message()) {
 			// Remove corresponding message from routing queue
