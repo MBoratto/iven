@@ -144,7 +144,7 @@ uint64_t routed_dest_address64(void) {
 	
 	for(int i = 0; i < 8; i++) {
 		
-			dest_addr |= rx_data[i+1] << 8*i; // recebe e armazena endereço da fonte
+			dest_addr |= (uint64_t)rx_data[i+1] << 8*i; // recebe e armazena endereço da fonte
 		
 	}
 	
