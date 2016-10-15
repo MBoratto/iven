@@ -77,7 +77,8 @@ void handle_routing(Mrf24j& mrf) {
 	} else {
 		if(new_message()) {
 			message_list tmp_list;
-			tmp_list.message = rx_data;
+			memcpy(tmp_list.message, rx_data, strlen((char *)rx_data) + 1);
+			//tmp_list.message = rx_data;
 			tmp_list.address = dest_address;
 			tmp_list.number = message_number ;
 			tmp_list.attempts = NUM_ATTEMPTS;
@@ -209,7 +210,8 @@ void handle_ack(Mrf24j& mrf) {
 			printf("\n***********************************\n");
 			// Add final ack message to queue for routing to destination
 			message_list tmp_list;
-			tmp_list.message = rx_data;
+			memcpy(tmp_list.message, rx_data, strlen((char *)rx_data) + 1);
+			//tmp_list.message = rx_data;
 			tmp_list.address = dest_address;
 			tmp_list.number = message_number ;
 			tmp_list.attempts = NUM_ATTEMPTS;
@@ -262,7 +264,8 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	//mrf.send64(dest_addr, ack_msg);
 	
 	message_list tmp_list;
-	tmp_list.message = (uint8_t *)ack_msg;
+	memcpy(tmp_list.message, (uint8_t *)ack_msg, strlen(ack_msg) + 1);
+	//tmp_list.message = (uint8_t *)ack_msg;
 	tmp_list.address = dest_addr;
 	tmp_list.number = message_number + 1;
 	tmp_list.attempts = NUM_ATTEMPTS;
