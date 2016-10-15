@@ -85,6 +85,7 @@ void handle_routing(Mrf24j& mrf) {
 			tmp_list.address = dest_address;
 			tmp_list.number = message_number ;
 			tmp_list.attempts = NUM_ATTEMPTS;
+			tmp_list.self = false;
 			message_queue.push(tmp_list);
 			printf("\nMessage on queue");
 			send_nack(mrf, src_address, dest_address);// return node ack
@@ -127,6 +128,9 @@ void handle_flooding(void) {
 				tmp_list.attempts--;
 				if(tmp_list.attempts != 0) {
 					tmp_queue.push(tmp_list);
+				} else if(tmp_list.self == true) {
+					tmp_list.active = false;
+					tmp_queue.push(tmp_list);
 				}
 				break;
 			}
@@ -151,7 +155,12 @@ void handle_nack(void) {
 			message_queue.pop();
 			printf("\nAddr: %X\tNumber: %i", (int)(tmp_list.address & 0xff), tmp_list.number);
 			if(tmp_list.address == dest_addr && tmp_list.number == message_number) {
-				printf("\n\nPop messsage from queue\n");
+				if(tmp_list.self == true) {
+					tmp_list.active = false;
+					tmp_queue.push(tmp_list);
+				} else {
+					printf("\n\nPop messsage from queue\n");
+				}
 				break;
 			}
 			tmp_queue.push(tmp_list);
@@ -166,12 +175,9 @@ void handle_nack(void) {
 
 uint64_t routed_dest_address64(void) {
 	uint64_t dest_addr = 0;
-	
 	for(int i = 0; i < 8; i++) {
-			dest_addr |= (uint64_t)rx_data[8-i] << 8*i; // recebe e armazena endereço da fonte
-		
+		dest_addr |= (uint64_t)rx_data[8-i] << 8*i; // recebe e armazena endereço da fonte
 	}
-	
 	return dest_addr;
 }
 
@@ -185,6 +191,21 @@ void handle_ack(Mrf24j& mrf) {
 					break;
 				} 
 			}
+		}
+		uint64_t msg_addr = routed_dest_address64();
+		std::queue<message_list> tmp_queue;
+		while(!message_queue.empty()) {
+			message_list tmp_list = message_queue.front();
+			message_queue.pop();
+			if(tmp_list.address == msg_addr && tmp_list.number == (message_number - 1)) {
+				printf("\n\nPop messsage from queue\n");
+				break;
+			}
+			tmp_queue.push(tmp_list);
+		}
+		while(!tmp_queue.empty()) {
+			message_queue.push(tmp_queue.front());
+			tmp_queue.pop();
 		}
 		send_nack(mrf, src_address, dest_address);// return node ack
 		printf("Nack Sent! \n");
@@ -220,6 +241,7 @@ void handle_ack(Mrf24j& mrf) {
 			tmp_list.address = dest_address;
 			tmp_list.number = message_number ;
 			tmp_list.attempts = NUM_ATTEMPTS;
+			tmp_list.self = false;
 			message_queue.push(tmp_list);
 
 			send_nack(mrf, src_address, dest_address);// return node ack
@@ -266,5 +288,48 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	tmp_list.address = dest_addr;
 	tmp_list.number = message_number + 1;
 	tmp_list.attempts = NUM_ATTEMPTS;
+	tmp_list.self = true;
 	message_queue.push(tmp_list);
 }
+
+void update_timer (void) {
+	for (std::unordered_multimap<uint64_t, message_lifetime>::iterator it = message_map.begin(); it != message_map.end(); it++) {
+		it->second.lifetime--;
+		if(it->second.lifetime == 0) {
+			if(it->first == self_address) {
+				if((it->second.number % 2) != 0) {
+					auto range = message_map.equal_range(self_address);
+					if(range.first != range.second) {
+						for(auto it2 = range.first; it2 != range.second; it2++) {
+							if(it2->second.number == (it->second.number + 1)) {
+								message_map.erase(it);
+								break;
+							} else {
+								it->second.lifetime = 60;
+								std::queue<message_list> tmp_queue;
+								while(!message_queue.empty()) {
+									message_list tmp_list = message_queue.front();
+									message_queue.pop();
+									if(tmp_list.self == true && tmp_list.number == it->second.number) {
+										printf("\n\nPop messsage from queue\n");
+										break;
+									}
+									tmp_queue.push(tmp_list);
+								}
+								while(!tmp_queue.empty()) {
+									message_queue.push(tmp_queue.front());
+									tmp_queue.pop();
+								}
+							}
+						}
+					}
+				} else {
+					message_map.erase(it);
+				}
+			} else {
+				message_map.erase(it);
+			}
+		}
+	}
+}
+
