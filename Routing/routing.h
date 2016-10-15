@@ -13,7 +13,7 @@
 #define MSG_LIFETIME 60
 
 typedef struct _message_list {
-	uint8_t * message;
+	uint8_t message[116];
 	uint64_t address;
 	char number;
 	char attempts;

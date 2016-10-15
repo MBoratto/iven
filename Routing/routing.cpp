@@ -5,8 +5,8 @@ std::unordered_multimap<uint64_t, message_lifetime> message_map;
 
 char message_number;
 uint8_t * rx_data;
+uint8_t data_length;
 uint64_t self_address, dest_address, src_address;
-char ack_msg[10];
 
 std::queue<message_list> get_queue(void) {
 	return message_queue;
@@ -16,6 +16,7 @@ void handle_packets(Mrf24j& mrf) {
 	printf("====================================\n");
 	printf("Packet received! Handling...\n\n");
 	rx_data = mrf.get_rxinfo()->rx_data;
+	data_length = mrf.get_rxinfo()->frame_length - 23;
 	char routing_control = (rx_data[0] & 0xe0) >> 5;
 	message_number = rx_data[0] & 0x1f;
 	printf("Control packet: %i\tRouting Control: %i\tMsg #: %i\n\n", rx_data[0], routing_control, message_number);
@@ -77,8 +78,10 @@ void handle_routing(Mrf24j& mrf) {
 	} else {
 		if(new_message()) {
 			message_list tmp_list;
-			memcpy(tmp_list.message, rx_data, strlen((char *)rx_data) + 1);
-			//tmp_list.message = rx_data;
+			for(int i = 0; i < data_length; i++) {
+				tmp_list.message[i] = rx_data[i];
+			}
+			tmp_list.message[data_length] = '\0';
 			tmp_list.address = dest_address;
 			tmp_list.number = message_number ;
 			tmp_list.attempts = NUM_ATTEMPTS;
@@ -210,8 +213,10 @@ void handle_ack(Mrf24j& mrf) {
 			printf("\n***********************************\n");
 			// Add final ack message to queue for routing to destination
 			message_list tmp_list;
-			memcpy(tmp_list.message, rx_data, strlen((char *)rx_data) + 1);
-			//tmp_list.message = rx_data;
+			for(int i = 0; i < data_length; i++) {
+				tmp_list.message[i] = rx_data[i];
+			}
+			tmp_list.message[data_length] = '\0';
 			tmp_list.address = dest_address;
 			tmp_list.number = message_number ;
 			tmp_list.attempts = NUM_ATTEMPTS;
@@ -250,22 +255,14 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	message_map.insert({dest_addr, tmp_message});
 
 	printf("\nSending final ack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
-	ack_msg[0] = (char)(0b10000000 | (message_number + 1));
-	ack_msg[1] = (char)((msg_address>>56) & 0xff);
-	ack_msg[2] = (char)((msg_address>>48) & 0xff);
-	ack_msg[3] = (char)((msg_address>>40) & 0xff);
-	ack_msg[4] = (char)((msg_address>>32) & 0xff);
-	ack_msg[5] = (char)((msg_address>>24) & 0xff);
-	ack_msg[6] = (char)((msg_address>>16) & 0xff);
-	ack_msg[7] = (char)((msg_address>>8) & 0xff);
-	ack_msg[8] = (char)(msg_address & 0xff);
-	ack_msg[9] = '\0';
+	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	
 	//mrf.send64(dest_addr, ack_msg);
 	
 	message_list tmp_list;
-	memcpy(tmp_list.message, (uint8_t *)ack_msg, strlen(ack_msg) + 1);
-	//tmp_list.message = (uint8_t *)ack_msg;
+	for(int i = 0; i < 10; i++) {
+		tmp_list.message[i] = ack_msg[i];
+	}
 	tmp_list.address = dest_addr;
 	tmp_list.number = message_number + 1;
 	tmp_list.attempts = NUM_ATTEMPTS;
