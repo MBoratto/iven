@@ -68,7 +68,7 @@ void handle_routing(Mrf24j& mrf) {
 			// handle message and return ack
 			printf("\nMessage Arrived!\n\n");
 			uint64_t dest_addr = routed_dest_address64();
-			send_ack(mrf, dest_addr, self_address);
+			send_ack(dest_addr, self_address);
 		} else {
 			printf("\n Flood! \n\n");
 			send_flood(mrf, src_address, dest_address);
@@ -240,13 +240,19 @@ void send_nack(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
 	mrf.send64(src_addr, nack_msg);
 }
 
-void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
+void send_ack(uint64_t dest_addr, uint64_t msg_address) {
 	message_lifetime tmp_message;
 	tmp_message.number = message_number + 1;
 	tmp_message.lifetime = MSG_LIFETIME;
 	message_map.insert({dest_addr, tmp_message});
 
 	printf("\nSending final ack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
-	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
-	mrf.send64(dest_addr, ack_msg);
+	uint8_t ack_msg[] = {(uint8_t)(0b10000000 | (message_number + 1)), (uint8_t)((msg_address>>56) & 0xff), (uint8_t)((msg_address>>48) & 0xff), (uint8_t)((msg_address>>40) & 0xff), (uint8_t)((msg_address>>32) & 0xff), (uint8_t)((msg_address>>24) & 0xff), (uint8_t)((msg_address>>16) & 0xff), (uint8_t)((msg_address>>8) & 0xff), (uint8_t)(msg_address & 0xff), '\0'};
+	
+	message_list tmp_list;
+	tmp_list.message = ack_msg;
+	tmp_list.address = dest_addr;
+	tmp_list.number = message_number + 1;
+	tmp_list.attempts = NUM_ATTEMPTS;
+	message_queue.push(tmp_list);
 }
