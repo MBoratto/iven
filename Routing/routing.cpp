@@ -12,7 +12,7 @@ std::queue<message_list> get_queue(void) {
 	return message_queue;
 }
 
-void handle_packets(Mrf24j& mrf) {
+void handle_packets(Mrf24j& mrf, void (*msg_handler)(void)) {
 	printf("====================================\n");
 	printf("Packet received! Handling...\n\n");
 	rx_data = mrf.get_rxinfo()->rx_data;
@@ -31,11 +31,11 @@ void handle_packets(Mrf24j& mrf) {
 	switch (routing_control) {
 		case 0:
 			printf("\nHandling Message \n");
-			handle_message();
+			handle_message(msg_handler);
 			break;
 		case 1: 
 			printf("\nHandling Routing \n");
-			handle_routing(mrf);
+			handle_routing(mrf, msg_handler);
 			break;
 		case 2:
 			printf("\nHandling Flooding \n");
@@ -58,18 +58,19 @@ void handle_packets(Mrf24j& mrf) {
 	printf("====================================\n\n");
 }
 
-void handle_message(void) {
+void handle_message(void (*msg_handler)(void)) {
 	if(self_address == dest_address) {
-		
+		msg_handler();
 	}
 }
 
-void handle_routing(Mrf24j& mrf) {
+void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 	if(self_address == dest_address) {
 		if(new_message()) {
 			// handle message and return ack
 			printf("\nMessage Arrived!\n\n");
 			uint64_t dest_addr = routed_dest_address64();
+			handle_message(msg_handler);
 			send_ack(mrf, dest_addr, self_address);
 		} else {
 			printf("\n Flood! \n\n");

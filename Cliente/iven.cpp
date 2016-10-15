@@ -12,6 +12,7 @@
 void interrupt_routine(void);
 void handle_rx(void);
 void handle_tx(void);
+void client_handler(void);
 
 const int pin_button1 = 26;
 const int pin_button2 = 21;
@@ -162,7 +163,7 @@ void interrupt_routine() {
 void handle_rx() {
 	
 	piLock(TIMER_KEY);
-		handle_packets(mrf);
+		handle_packets(mrf, &client_handler);
 	piUnlock(TIMER_KEY);
 	
     printf("\nreceived a packet ");
@@ -195,4 +196,8 @@ void handle_tx() {
         printf("%d", mrf.get_txinfo()->retries);
         printf(" retries\n");
     }
+}
+
+void client_handler(void) {
+	printf("Handling Client Messages");
 }
