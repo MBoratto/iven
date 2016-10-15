@@ -97,7 +97,8 @@ void handle_routing(Mrf24j& mrf) {
 }
 
 bool new_message(void) {
-	auto range = message_map.equal_range(dest_address);
+	uint64_t dest_addr = routed_dest_address64();
+	auto range = message_map.equal_range(dest_addr);
 	if(range.first != range.second) {
 		for(auto it = range.first; it != range.second; it++) {
 			if(it->second.number == message_number) {
@@ -108,7 +109,7 @@ bool new_message(void) {
 	message_lifetime tmp_message;
 	tmp_message.number = message_number;
 	tmp_message.lifetime = MSG_LIFETIME;
-	message_map.insert({dest_address, tmp_message});
+	message_map.insert({dest_addr, tmp_message});
 	return true;
 }
 
@@ -175,7 +176,6 @@ uint64_t routed_dest_address64(void) {
 }
 
 void handle_ack(Mrf24j& mrf) {
-	
 	if(self_address == dest_address) {
 		auto range = message_map.equal_range(self_address);
 		if(range.first != range.second) {
@@ -252,7 +252,7 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	message_lifetime tmp_message;
 	tmp_message.number = message_number + 1;
 	tmp_message.lifetime = MSG_LIFETIME;
-	message_map.insert({dest_addr, tmp_message});
+	message_map.insert({msg_address, tmp_message});
 
 	printf("\nSending final ack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
