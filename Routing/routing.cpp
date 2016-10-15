@@ -6,6 +6,7 @@ std::unordered_multimap<uint64_t, message_lifetime> message_map;
 char message_number;
 uint8_t * rx_data;
 uint64_t self_address, dest_address, src_address;
+char ack_msg[10];
 
 std::queue<message_list> get_queue(void) {
 	return message_queue;
@@ -247,7 +248,16 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	message_map.insert({dest_addr, tmp_message});
 
 	printf("\nSending final ack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
-	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
+	ack_msg[0] = (char)(0b10000000 | (message_number + 1));
+	ack_msg[1] = (char)((msg_address>>56) & 0xff);
+	ack_msg[2] = (char)((msg_address>>48) & 0xff);
+	ack_msg[3] = (char)((msg_address>>40) & 0xff);
+	ack_msg[4] = (char)((msg_address>>32) & 0xff);
+	ack_msg[5] = (char)((msg_address>>24) & 0xff);
+	ack_msg[6] = (char)((msg_address>>16) & 0xff);
+	ack_msg[7] = (char)((msg_address>>8) & 0xff);
+	ack_msg[8] = (char)(msg_address & 0xff);
+	ack_msg[9] = '\0';
 	
 	//mrf.send64(dest_addr, ack_msg);
 	
