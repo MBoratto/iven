@@ -297,7 +297,7 @@ void update_timer (void) {
 		it->second.lifetime--;
 		if(it->second.lifetime == 0) {
 			if(it->first == self_address) {
-				if((it->second.number % 2) != 0) {
+				if((it->second.number % 2) == 0) {
 					auto range = message_map.equal_range(self_address);
 					if(range.first != range.second) {
 						for(auto it2 = range.first; it2 != range.second; it2++) {
@@ -311,8 +311,7 @@ void update_timer (void) {
 									message_list tmp_list = message_queue.front();
 									message_queue.pop();
 									if(tmp_list.self == true && tmp_list.number == it->second.number) {
-										printf("\n\nPop messsage from queue\n");
-										break;
+										tmp_list.active = true;
 									}
 									tmp_queue.push(tmp_list);
 								}

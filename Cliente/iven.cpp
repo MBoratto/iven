@@ -142,11 +142,13 @@ int main() {
 			std::queue<message_list> message_queue = get_queue();
 
 			while(!message_queue.empty()) {
-				printf("\n##############txxxing queue...##############\n");
 				message_list tmp_list = message_queue.front();
 				message_queue.pop();
-				printf("\nAddr: %X\tNumber: %i\t MSG: %i\t From: %X", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0], tmp_list.message[8]);
-				mrf.send64(tmp_list.address, (char *)tmp_list.message);
+				if(tmp_list.active) {
+					printf("\n##############txxxing queue...##############\n");
+					printf("\nAddr: %X\tNumber: %i\t MSG: %i\t From: %X", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0], tmp_list.message[8]);
+					mrf.send64(tmp_list.address, (char *)tmp_list.message);
+				}
 			}
 			sendTime = millis() + 500;
 		}
