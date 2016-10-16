@@ -118,7 +118,7 @@ void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 			// handle message and return ack
 			printf("\nMessage Arrived!\n\n");
 			uint64_t dest_addr = routed_dest_address64();
-			send_ack(mrf, dest_addr, dest_addr);
+			send_ack(mrf, dest_addr, self_address);
 			handle_message(msg_handler);
 		} else {
 			printf("\n Flood! \n\n");
@@ -232,37 +232,32 @@ uint64_t routed_dest_address64(void) {
 
 void handle_ack(Mrf24j& mrf) {
 	if(self_address == dest_address) {
-		if(new_message()) {
-			auto range = message_map.equal_range(self_address);
-			if(range.first != range.second) {
-				for(auto it = range.first; it != range.second; it++) {
-					if(it->second.number == (message_number - 1)) {
-						message_map.erase(it);
-						break;
-					} 
-				}
-			}
-			uint64_t msg_addr = routed_dest_address64();
-			std::queue<message_list> tmp_queue;
-			while(!message_queue.empty()) {
-				message_list tmp_list = message_queue.front();
-				message_queue.pop();
-				if(tmp_list.address == msg_addr && tmp_list.number == (message_number - 1)) {
-					printf("\n\nPop messsage from queue\n");
+		auto range = message_map.equal_range(self_address);
+		if(range.first != range.second) {
+			for(auto it = range.first; it != range.second; it++) {
+				if(it->second.number == (message_number - 1)) {
+					message_map.erase(it);
 					break;
-				}
-				tmp_queue.push(tmp_list);
+				} 
 			}
-			while(!tmp_queue.empty()) {
-				message_queue.push(tmp_queue.front());
-				tmp_queue.pop();
-			}
-			send_nack(mrf, src_address, dest_address);// return node ack
-			printf("Nack Sent! \n");
-		} else {
-			printf("\n\n Flood! \n\n");
-			send_flood(mrf, src_address, self_address);
 		}
+		uint64_t msg_addr = routed_dest_address64();
+		std::queue<message_list> tmp_queue;
+		while(!message_queue.empty()) {
+			message_list tmp_list = message_queue.front();
+			message_queue.pop();
+			if(tmp_list.address == msg_addr && tmp_list.number == (message_number - 1)) {
+				printf("\n\nPop messsage from queue\n");
+				break;
+			}
+			tmp_queue.push(tmp_list);
+		}
+		while(!tmp_queue.empty()) {
+			message_queue.push(tmp_queue.front());
+			tmp_queue.pop();
+		}
+		send_nack(mrf, src_address, dest_address);// return node ack
+		printf("Nack Sent! \n");
 	} else {
 		if(new_message()) {
 			printf("\nNew final ack message\n");
