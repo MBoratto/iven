@@ -350,6 +350,7 @@ void update_timer (void) {
 	for (std::unordered_multimap<uint64_t, message_lifetime>::iterator it = message_map.begin(); it != message_map.end(); it++) {
 		it->second.lifetime--;
 		if(it->second.lifetime == 0) {
+			printf("\n%X - %i\n", (char)(it->first & 0xff), it->second.number)
 			if(it->first == self_address) {
 				if((it->second.number % 2) == 0) {
 					it->second.lifetime = 60;
