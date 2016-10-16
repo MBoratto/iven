@@ -182,8 +182,10 @@ void handle_flooding(void) {
 				if(tmp_list.active) {
 					tmp_list.attempts--;
 					if(tmp_list.attempts == 0) {
-						if(tmp_list.self == true) {
+						if(tmp_list.self == true && (tmp_list.number % 2) == 0) {
 							tmp_list.active = false;
+							tmp_queue.push(tmp_list);
+							break;
 						} else {
 							break;
 						}
@@ -211,13 +213,16 @@ void handle_nack(void) {
 			message_queue.pop();
 			printf("\nAddr: %X\tNumber: %i", (int)(tmp_list.address & 0xff), tmp_list.number);
 			if(tmp_list.address == dest_addr && tmp_list.number == message_number) {
-				if(tmp_list.self == true && (tmp_list.number % 2) == 0) {
-					tmp_list.active = false;
-					tmp_queue.push(tmp_list);
-				} else {
-					printf("\n\nPop messsage from queue\n");
+				if(tmp_list.active) {
+					if(tmp_list.self == true && (tmp_list.number % 2) == 0) {
+						tmp_list.active = false;
+						tmp_queue.push(tmp_list);
+						break;
+					} else {
+						printf("\n\nPop messsage from queue\n");
+						break;
+					}
 				}
-				break;
 			}
 			tmp_queue.push(tmp_list);
 		}
@@ -363,6 +368,8 @@ void update_timer (void) {
 						message_queue.pop();
 						if(tmp_list.self == true && tmp_list.number == it->second.number) {
 							tmp_list.active = true;
+							tmp_queue.push(tmp_list);
+							break;
 						}
 						tmp_queue.push(tmp_list);
 					}
