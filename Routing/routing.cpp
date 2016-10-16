@@ -295,7 +295,7 @@ void handle_ack(Mrf24j& mrf) {
 		send_nack(mrf, src_address, dest_address);// return node ack
 		//printf("Nack Sent! \n");
 	} else {
-		if(new_ack_message()) {
+		if(new_message()) {
 			printf("\nRoteando confirmação de mensagem final\n");
 			// Remove corresponding message from routing queue
 			std::queue<message_list> tmp_queue;
@@ -344,7 +344,7 @@ void handle_ack(Mrf24j& mrf) {
 	}
 }
 
-bool new_ack_message(void) {
+/*bool new_ack_message(void) {
 	auto range = message_map.equal_range(dest_address);
 	if(range.first != range.second) {
 		for(auto it = range.first; it != range.second; it++) {
@@ -358,7 +358,7 @@ bool new_ack_message(void) {
 	tmp_message.lifetime = MSG_LIFETIME;
 	message_map.insert({dest_address, tmp_message});
 	return true;
-}
+}*/
 
 int handle_scan(void) {
 	// retreive address (future use - maybe)
