@@ -173,13 +173,15 @@ void handle_flooding(void) {
 			message_queue.pop();
 			printf("\nAddr: %X\tNumber: %i\tAttempts: %i", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.attempts);
 			if(tmp_list.address == dest_addr && tmp_list.number == message_number) {
-				tmp_list.attempts--;
-				if(tmp_list.attempts == 0) {
-					if(tmp_list.self == true) {
-						tmp_list.active = false;
-						tmp_queue.push(tmp_list);
+				if(tmp_list.active) {
+					tmp_list.attempts--;
+					if(tmp_list.attempts == 0) {
+						if(tmp_list.self == true) {
+							tmp_list.active = false;
+						} else {
+							break;
+						}
 					}
-					break;
 				}
 			}
 			tmp_queue.push(tmp_list);
@@ -246,6 +248,19 @@ void handle_ack(Mrf24j& mrf) {
 			message_list tmp_list = message_queue.front();
 			message_queue.pop();
 			if(tmp_list.address == msg_addr && tmp_list.number == (message_number - 1)) {
+				printf("\n\nPop messsage from queue\n");
+				break;
+			}
+			tmp_queue.push(tmp_list);
+		}
+		while(!tmp_queue.empty()) {
+			message_queue.push(tmp_queue.front());
+			tmp_queue.pop();
+		}
+		while(!message_queue.empty()) {
+			message_list tmp_list = message_queue.front();
+			message_queue.pop();
+			if(tmp_list.address == msg_addr && tmp_list.number == message_number) {
 				printf("\n\nPop messsage from queue\n");
 				break;
 			}

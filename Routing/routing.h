@@ -10,7 +10,7 @@
 #include "../MRF24J/mrf24j.h"
 
 #define NUM_ATTEMPTS 1
-#define MSG_LIFETIME 30
+#define MSG_LIFETIME 10
 
 typedef struct _message_list {
 	uint8_t message[116];
