@@ -13,21 +13,38 @@ std::queue<message_list> get_queue(void) {
 }
 
 bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data) {
-	if(new_message()) {
-		message_list tmp_list;
-		for(unsigned int i = 0; i < strlen(data); i++) {
-			tmp_list.message[i] = data[i];
-		}
-		tmp_list.message[strlen(data)] = '\0';
-		tmp_list.address = dest64;
-		tmp_list.number = data[0] & 0x1f;
-		tmp_list.attempts = NUM_ATTEMPTS;
-		tmp_list.self = true;
-		message_queue.push(tmp_list);
-		return true;
-	} else {
-		return false;
+	
+	uint64_t dest_addr = 0;
+	for(int i = 0; i < 8; i++) {
+		dest_addr |= (uint64_t)data[8-i] << 8*i; // recebe e armazena endereço da fonte
 	}
+
+	auto range = message_map.equal_range(dest_addr);
+	if(range.first != range.second) {
+		for(auto it = range.first; it != range.second; it++) {
+			if(it->second.number == message_number) {
+				return false;
+			} 
+		}
+	}
+	message_lifetime tmp_message;
+	tmp_message.number = data[0] & 0x1f;
+	tmp_message.lifetime = MSG_LIFETIME;
+	message_map.insert({dest_addr, tmp_message});
+	
+	uint8_t len = strlen(data);
+	message_list tmp_list;
+	for(uint8_t i = 0; i < len; i++) {
+		tmp_list.message[i] = data[i];
+	}
+	tmp_list.message[len] = '\0';
+	tmp_list.address = dest64;
+	tmp_list.number = data[0] & 0x1f;
+	tmp_list.attempts = NUM_ATTEMPTS;
+	tmp_list.self = true;
+	message_queue.push(tmp_list);
+	
+	return true;
 }
 
 void handle_packets(Mrf24j& mrf, void (*msg_handler)(void)) {
