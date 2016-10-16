@@ -368,6 +368,7 @@ void update_timer (void) {
 						message_queue.pop();
 						if(tmp_list.self == true && tmp_list.number == it->second.number) {
 							tmp_list.active = true;
+							tmp_list.attempts = NUM_ATTEMPTS;
 							tmp_queue.push(tmp_list);
 							break;
 						}
