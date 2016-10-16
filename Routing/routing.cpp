@@ -205,7 +205,7 @@ void handle_nack(void) {
 			message_queue.pop();
 			printf("\nAddr: %X\tNumber: %i", (int)(tmp_list.address & 0xff), tmp_list.number);
 			if(tmp_list.address == dest_addr && tmp_list.number == message_number) {
-				if(tmp_list.self == true) {
+				if(tmp_list.self == true && (tmp_list.number % 2) == 0) {
 					tmp_list.active = false;
 					tmp_queue.push(tmp_list);
 				} else {
@@ -337,7 +337,7 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	message_lifetime tmp_message;
 	tmp_message.number = message_number + 1;
 	tmp_message.lifetime = MSG_LIFETIME;
-	message_map.insert({msg_address, tmp_message});
+	message_map.insert({dest_addr, tmp_message});
 
 	printf("\nSending final ack...\nDest addr: %X\tMsg addr: %X\tMsg #: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
