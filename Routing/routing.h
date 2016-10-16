@@ -37,6 +37,7 @@ void handle_packets(Mrf24j& mrf, void (*msg_handler)(void));
 void handle_message(void (*msg_handler)(void));
 void handle_routing(Mrf24j& mrf, void (*msg_handler)(void));
 bool new_message(void);
+bool new_ack_message(void);
 bool self_path(void);
 void handle_flooding(void);
 void handle_nack(void);
