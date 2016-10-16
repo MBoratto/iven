@@ -12,6 +12,24 @@ std::queue<message_list> get_queue(void) {
 	return message_queue;
 }
 
+bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data) {
+	if(new_message()) {
+		message_list tmp_list;
+		for(int i = 0; i < strlen(data); i++) {
+			tmp_list.message[i] = data[i];
+		}
+		tmp_list.message[strlen(data)] = '\0';
+		tmp_list.address = dest64;
+		tmp_list.number = data[0] & 0x1f;
+		tmp_list.attempts = NUM_ATTEMPTS;
+		tmp_list.self = true;
+		message_queue.push(tmp_list);
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void handle_packets(Mrf24j& mrf, void (*msg_handler)(void)) {
 	printf("====================================\n");
 	printf("Packet received! Handling...\n\n");

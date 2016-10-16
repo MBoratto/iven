@@ -139,7 +139,7 @@ int main() {
 			piUnlock(BUTTON_KEY);
 			printf("\ntxxxing...\n");
 			char msg[] = {0b00100000, (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
-			mrf.send64(0x1111111111111113, msg);
+			message_send64(mrf, 0x1111111111111113, msg);
 		}
 		if(millis() > sendTime) {
 			std::queue<message_list> message_queue = get_queue();
