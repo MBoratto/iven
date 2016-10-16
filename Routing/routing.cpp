@@ -4,7 +4,7 @@ std::queue<message_list> message_queue;
 std::unordered_multimap<uint64_t, message_lifetime> message_map;
 
 char message_number;
-uint8_t * rx_data;
+uint8_t rx_data[116];
 uint8_t data_length;
 uint64_t self_address, dest_address, src_address;
 
@@ -63,8 +63,14 @@ bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data) {
 void handle_packets(Mrf24j& mrf, void (*msg_handler)(void)) {
 	printf("====================================\n");
 	printf("Packet received! Handling...\n\n");
-	rx_data = mrf.get_rxinfo()->rx_data;
+	
 	data_length = mrf.get_rxinfo()->frame_length - 23;
+	
+	for(int i = 0; i < data_length; i++) {
+		rx_data[i] = mrf.get_rxinfo()->rx_data[i];
+	}
+	rx_data[data_length] = '\0';
+	
 	char routing_control = (rx_data[0] & 0xe0) >> 5;
 	message_number = rx_data[0] & 0x1f;
 	printf("Control packet: %i\tRouting Control: %i\tMsg #: %i\n\n", rx_data[0], routing_control, message_number);
