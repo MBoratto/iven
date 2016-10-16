@@ -129,7 +129,7 @@ int main() {
 	// uncomment if you want to buffer all PHY Payload
 	//mrf.set_bufferPHY(true);
 
-	wiringPiISR(pin_interrupt, INT_EDGE_BOTH, &interrupt_routine); // interrupt 0 equivalent to pin 2(INT0) on ATmega8/168/328
+	wiringPiISR(pin_interrupt, INT_EDGE_FALLING, &interrupt_routine); // interrupt 0 equivalent to pin 2(INT0) on ATmega8/168/328
 	
 	unsigned int sendTime = 0;
 	uint8_t message_n = 0;
