@@ -345,28 +345,30 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 
 void update_timer (void) {
 	for (std::unordered_multimap<uint64_t, message_lifetime>::iterator it = message_map.begin(); it != message_map.end(); it++) {
-		it->second.lifetime--;
-		if(it->second.lifetime == 0) {
-			printf("\n%X - %i\n", (char)(it->first & 0xff), it->second.number);
-			if(it->first == self_address) {
-				if((it->second.number % 2) == 0) {
-					it->second.lifetime = 60;
-					std::queue<message_list> tmp_queue;
-					while(!message_queue.empty()) {
-						message_list tmp_list = message_queue.front();
-						message_queue.pop();
-						if(tmp_list.self == true && tmp_list.number == it->second.number) {
-							tmp_list.active = true;
+		if(!message_map.empty()) {
+			it->second.lifetime--;
+			if(it->second.lifetime == 0) {
+				printf("\n%X - %i\n", (char)(it->first & 0xff), it->second.number);
+				if(it->first == self_address) {
+					if((it->second.number % 2) == 0) {
+						it->second.lifetime = 60;
+						std::queue<message_list> tmp_queue;
+						while(!message_queue.empty()) {
+							message_list tmp_list = message_queue.front();
+							message_queue.pop();
+							if(tmp_list.self == true && tmp_list.number == it->second.number) {
+								tmp_list.active = true;
+							}
+							tmp_queue.push(tmp_list);
 						}
-						tmp_queue.push(tmp_list);
+						while(!tmp_queue.empty()) {
+							message_queue.push(tmp_queue.front());
+							tmp_queue.pop();
+						}
 					}
-					while(!tmp_queue.empty()) {
-						message_queue.push(tmp_queue.front());
-						tmp_queue.pop();
-					}
+				} else {
+					message_map.erase(it);
 				}
-			} else {
-				message_map.erase(it);
 			}
 		}
 	}
