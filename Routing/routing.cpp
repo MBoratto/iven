@@ -2,8 +2,10 @@
 
 std::queue<message_list> message_queue;
 std::unordered_multimap<uint64_t, message_lifetime> message_map;
+std::unordered_multimap<uint64_t, message_block> message_path;
 
 char message_number;
+char clearPath = 0;
 uint8_t rx_data[116];
 uint8_t data_length;
 uint64_t self_address, dest_address, src_address;
@@ -119,11 +121,16 @@ void handle_message(void (*msg_handler)(void)) {
 
 void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 	if(self_address == dest_address) {
-		// handle message and return ack
-		printf("\nMessage Arrived!\n\n");
-		uint64_t dest_addr = routed_dest_address64();
-		send_ack(mrf, dest_addr, self_address);
-		handle_message(msg_handler);
+		if(new_message()) {
+			// handle message and return ack
+			printf("\nMessage Arrived!\n\n");
+			uint64_t dest_addr = routed_dest_address64();
+			send_ack(mrf, dest_addr, self_address);
+			handle_message(msg_handler);
+		} else {
+			printf("\n Flood! \n\n");
+			send_flood(mrf, src_address, self_address);
+		}
 	} else {
 		if(new_message()) {
 			message_list tmp_list;
@@ -137,9 +144,16 @@ void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 			tmp_list.self = false;
 			message_queue.push(tmp_list);
 			printf("\nMessage on queue");
+			
+			message_block tmp_block;
+			tmp_block.address = dest_address;
+			tmp_block.number = message_number ;
+			
+			message_path.insert({src_address, tmp_block});
+			
 			send_nack(mrf, src_address, dest_address);// return node ack
 			printf("\nNack Sent!\n");
-		} else {
+		} else if(!self_path()) {
 			printf("\nFlood! \n\n");
 			send_flood(mrf, src_address, dest_address);
 		}
@@ -161,6 +175,18 @@ bool new_message(void) {
 	tmp_message.lifetime = MSG_LIFETIME;
 	message_map.insert({dest_addr, tmp_message});
 	return true;
+}
+
+bool self_path(void) {
+	auto range = message_path.equal_range(src_address);
+	if(range.first != range.second) {
+		for(auto it = range.first; it != range.second; it++) {
+			if(it->second.number == message_number) {
+				return true;
+			} 
+		}
+	}
+	return false;
 }
 
 void handle_flooding(void) {
@@ -350,6 +376,11 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 }
 
 void update_timer (void) {
+	clearPath++;
+	if(clearPath == 10) {
+		message_path.clear();
+		clearPath = 0;
+	}
 	for (std::unordered_multimap<uint64_t, message_lifetime>::iterator it = message_map.begin(); it != message_map.end(); it++) {
 		it->second.lifetime--;
 		if(it->second.lifetime == 0) {

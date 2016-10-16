@@ -25,13 +25,19 @@ typedef struct _message_lifetime {
 	char lifetime;
 } message_lifetime;
 
+typedef struct _message_block {
+	uint64_t address;
+	char number;
+} message_block;
+
 bool number_used(uint8_t msg_number);
 void routing_init(uint64_t self);
 bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data);
 void handle_packets(Mrf24j& mrf, void (*msg_handler)(void));
 void handle_message(void (*msg_handler)(void));
 void handle_routing(Mrf24j& mrf, void (*msg_handler)(void));
-bool new_message();
+bool new_message(void);
+bool self_path(void);
 void handle_flooding(void);
 void handle_nack(void);
 void handle_ack(Mrf24j& mrf);
