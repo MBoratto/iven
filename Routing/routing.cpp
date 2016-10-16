@@ -8,6 +8,22 @@ uint8_t * rx_data;
 uint8_t data_length;
 uint64_t self_address, dest_address, src_address;
 
+void routing_init(uint64_t self) {
+	self_address = self;
+}
+
+bool number_used(uint8_t msg_number) {
+	auto range = message_map.equal_range(self_address);
+	if(range.first != range.second) {
+		for(auto it = range.first; it != range.second; it++) {
+			if(it->second.number == msg_number) {
+				return true;
+			} 
+		}
+	}
+	return false;
+}
+
 std::queue<message_list> get_queue(void) {
 	return message_queue;
 }
