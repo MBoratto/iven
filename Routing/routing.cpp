@@ -361,7 +361,7 @@ void update_timer (void) {
 			printf("\n%X - %i\n", (char)(it->first & 0xff), it->second.number);
 			if(it->first == self_address) {
 				if((it->second.number % 2) == 0) {
-					it->second.lifetime = 60;
+					it->second.lifetime = MSG_LIFETIME;
 					std::queue<message_list> tmp_queue;
 					while(!message_queue.empty()) {
 						message_list tmp_list = message_queue.front();
