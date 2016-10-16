@@ -29,24 +29,21 @@ std::queue<message_list> get_queue(void) {
 }
 
 bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data) {
-	
-	uint64_t dest_addr = 0;
-	for(int i = 0; i < 8; i++) {
-		dest_addr |= (uint64_t)data[8-i] << 8*i; // recebe e armazena endereço da fonte
-	}
 
-	auto range = message_map.equal_range(dest_addr);
+	char msg_num = data[0] & 0x1f;
+	
+	auto range = message_map.equal_range(self_address);
 	if(range.first != range.second) {
 		for(auto it = range.first; it != range.second; it++) {
-			if(it->second.number == message_number) {
+			if(it->second.number == msg_num) {
 				return false;
 			} 
 		}
 	}
 	message_lifetime tmp_message;
-	tmp_message.number = data[0] & 0x1f;
+	tmp_message.number = msg_num;
 	tmp_message.lifetime = MSG_LIFETIME;
-	message_map.insert({dest_addr, tmp_message});
+	message_map.insert({self_address, tmp_message});
 	
 	uint8_t len = strlen(data);
 	message_list tmp_list;
@@ -55,7 +52,7 @@ bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data) {
 	}
 	tmp_list.message[len] = '\0';
 	tmp_list.address = dest64;
-	tmp_list.number = data[0] & 0x1f;
+	tmp_list.number = msg_num;
 	tmp_list.attempts = NUM_ATTEMPTS;
 	tmp_list.self = true;
 	message_queue.push(tmp_list);
@@ -125,7 +122,7 @@ void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 			handle_message(msg_handler);
 		} else {
 			printf("\n Flood! \n\n");
-			send_flood(mrf, src_address, dest_address);
+			send_flood(mrf, src_address, self_address);
 		}
 	} else {
 		if(new_message()) {
@@ -235,32 +232,37 @@ uint64_t routed_dest_address64(void) {
 
 void handle_ack(Mrf24j& mrf) {
 	if(self_address == dest_address) {
-		auto range = message_map.equal_range(self_address);
-		if(range.first != range.second) {
-			for(auto it = range.first; it != range.second; it++) {
-				if(it->second.number == (message_number - 1)) {
-					message_map.erase(it);
+		if(new_message()) {
+			auto range = message_map.equal_range(self_address);
+			if(range.first != range.second) {
+				for(auto it = range.first; it != range.second; it++) {
+					if(it->second.number == (message_number - 1)) {
+						message_map.erase(it);
+						break;
+					} 
+				}
+			}
+			uint64_t msg_addr = routed_dest_address64();
+			std::queue<message_list> tmp_queue;
+			while(!message_queue.empty()) {
+				message_list tmp_list = message_queue.front();
+				message_queue.pop();
+				if(tmp_list.address == msg_addr && tmp_list.number == (message_number - 1)) {
+					printf("\n\nPop messsage from queue\n");
 					break;
-				} 
+				}
+				tmp_queue.push(tmp_list);
 			}
-		}
-		uint64_t msg_addr = routed_dest_address64();
-		std::queue<message_list> tmp_queue;
-		while(!message_queue.empty()) {
-			message_list tmp_list = message_queue.front();
-			message_queue.pop();
-			if(tmp_list.address == msg_addr && tmp_list.number == (message_number - 1)) {
-				printf("\n\nPop messsage from queue\n");
-				break;
+			while(!tmp_queue.empty()) {
+				message_queue.push(tmp_queue.front());
+				tmp_queue.pop();
 			}
-			tmp_queue.push(tmp_list);
+			send_nack(mrf, src_address, dest_address);// return node ack
+			printf("Nack Sent! \n");
+		} else {
+			printf("\n\n Flood! \n\n");
+			send_flood(mrf, src_address, self_address);
 		}
-		while(!tmp_queue.empty()) {
-			message_queue.push(tmp_queue.front());
-			tmp_queue.pop();
-		}
-		send_nack(mrf, src_address, dest_address);// return node ack
-		printf("Nack Sent! \n");
 	} else {
 		if(new_message()) {
 			printf("\nNew final ack message\n");
@@ -350,38 +352,24 @@ void update_timer (void) {
 		if(it->second.lifetime == 0) {
 			if(it->first == self_address) {
 				if((it->second.number % 2) == 0) {
-					printf("\nCheck for message ack - Timeout\n");
-					auto range = message_map.equal_range(self_address);
-					if(range.first != range.second) {
-						for(auto it2 = range.first; it2 != range.second; it2++) {
-							if(it2->second.number == (it->second.number + 1)) {
-								printf("\nErasing self message (ack already arrived) - Timeout\n");
-								message_map.erase(it);
-								message_map.erase(it2);
-								//remover msg da fila
-								break;
-							} else {
-								printf("\nRe-sending message (no ack arrived) - Timeout\n");
-								it->second.lifetime = 60;
-								std::queue<message_list> tmp_queue;
-								while(!message_queue.empty()) {
-									message_list tmp_list = message_queue.front();
-									message_queue.pop();
-									if(tmp_list.self == true && tmp_list.number == it->second.number) {
-										tmp_list.active = true;
-									}
-									tmp_queue.push(tmp_list);
-								}
-								while(!tmp_queue.empty()) {
-									message_queue.push(tmp_queue.front());
-									tmp_queue.pop();
-								}
-							}
+					it->second.lifetime = 60;
+					std::queue<message_list> tmp_queue;
+					while(!message_queue.empty()) {
+						message_list tmp_list = message_queue.front();
+						message_queue.pop();
+						if(tmp_list.self == true && tmp_list.number == it->second.number) {
+							tmp_list.active = true;
 						}
+						tmp_queue.push(tmp_list);
 					}
+					while(!tmp_queue.empty()) {
+						message_queue.push(tmp_queue.front());
+						tmp_queue.pop();
+					}
+				} else {
+					message_map.erase(it);
 				}
 			} else {
-				printf("\nErasing other nodes messages - Timeout\n");
 				message_map.erase(it);
 			}
 		}
