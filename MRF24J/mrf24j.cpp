@@ -258,7 +258,7 @@ void Mrf24j::init(void) {
 
     bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
     bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
-    bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_64);
+    bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32);
     bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
     /*
     // Seems a bit ridiculous when I use reset pin anyway
