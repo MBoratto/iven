@@ -350,12 +350,15 @@ void update_timer (void) {
 		if(it->second.lifetime == 0) {
 			if(it->first == self_address) {
 				if((it->second.number % 2) == 0) {
+					printf("\nCheck for message ack - Timeout\n");
 					auto range = message_map.equal_range(self_address);
 					if(range.first != range.second) {
 						for(auto it2 = range.first; it2 != range.second; it2++) {
 							if(it2->second.number == (it->second.number + 1)) {
 								printf("\nErasing self message (ack already arrived) - Timeout\n");
 								message_map.erase(it);
+								message_map.erase(it2);
+								//remover msg da fila
 								break;
 							} else {
 								printf("\nRe-sending message (no ack arrived) - Timeout\n");
@@ -376,9 +379,6 @@ void update_timer (void) {
 							}
 						}
 					}
-				} else {
-					printf("\nErasing self ack message - Timeout\n");
-					message_map.erase(it);
 				}
 			} else {
 				printf("\nErasing other nodes messages - Timeout\n");
