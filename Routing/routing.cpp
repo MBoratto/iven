@@ -257,19 +257,7 @@ void handle_ack(Mrf24j& mrf) {
 			message_queue.push(tmp_queue.front());
 			tmp_queue.pop();
 		}
-		while(!message_queue.empty()) {
-			message_list tmp_list = message_queue.front();
-			message_queue.pop();
-			if(tmp_list.address == msg_addr && tmp_list.number == message_number) {
-				printf("\n\nPop messsage from queue\n");
-				break;
-			}
-			tmp_queue.push(tmp_list);
-		}
-		while(!tmp_queue.empty()) {
-			message_queue.push(tmp_queue.front());
-			tmp_queue.pop();
-		}
+		
 		send_nack(mrf, src_address, dest_address);// return node ack
 		printf("Nack Sent! \n");
 	} else {
