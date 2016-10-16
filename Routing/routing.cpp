@@ -326,10 +326,16 @@ void handle_ack(Mrf24j& mrf) {
 			tmp_list.attempts = NUM_ATTEMPTS;
 			tmp_list.self = false;
 			message_queue.push(tmp_list);
+			
+			message_block tmp_block;
+			tmp_block.address = dest_address;
+			tmp_block.number = message_number ;
+			
+			message_path.insert({src_address, tmp_block});
 
 			send_nack(mrf, src_address, dest_address);// return node ack
 			printf("\nNack Sent!\n");
-		} else {
+		} else if(!self_path()) {
 			printf("\n\n Flood! \n\n");
 			send_flood(mrf, src_address, dest_address);
 		}
