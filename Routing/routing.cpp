@@ -412,7 +412,7 @@ void update_timer (void) {
 			//printf("\n%X - %i\n", (char)(it->first & 0xff), it->second.number);
 			if(it->first == self_address) {
 				if((it->second.number % 2) == 0) {
-					printf("\nMensagem %i sem confirmação! Reenviando...\n", it->second.number);
+					//printf("\nMensagem %i sem confirmação! Reenviando...\n", it->second.number);
 					it->second.lifetime = MSG_LIFETIME;
 					std::queue<message_list> tmp_queue;
 					while(!message_queue.empty()) {
