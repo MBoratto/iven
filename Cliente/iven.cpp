@@ -87,6 +87,8 @@ const int pin_interrupt = 5; // default interrupt pin on ATmega8/168/328
 
 Mrf24j mrf(pin_reset, pin_cs, pin_interrupt);
 
+uint64_t addr64;
+
 int main() {
 	wiringPiSetupGpio();
 	
@@ -112,7 +114,7 @@ int main() {
 	// This is _our_ address
 	mrf.address64_write(0x1111111111111112); 
 	
-	uint64_t addr64 = mrf.address64_read();
+	addr64 = mrf.address64_read();
 	
 	routing_init(addr64);
 	
@@ -141,12 +143,14 @@ int main() {
 			piUnlock(BUTTON_KEY);
 			printf("\ntxxxing...\n");
 			
-			char msg[] = {0b00100000 | message_n, (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
-			message_send64(mrf, 0x1111111111111111, msg);
-			do {
+			while(number_used(message_n)) {
 				message_n += 2;
 				if (message_n == 32) message_n = 0;
-			} while(number_used(message_n));
+			}
+			
+			char msg[] = {0b00100000 | message_n, (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
+			message_send64(mrf, 0x1111111111111111, msg);
+			
 		}
 		if(millis() > sendTime) {
 			std::queue<message_list> message_queue = get_queue();
@@ -209,4 +213,17 @@ void handle_tx() {
 
 void client_handler(void) {
 	printf("Handling Client Messages");
+	if(mrf.get_rxinfo()->rx_data[9] == 2) {
+		printf("\nEnviando localização");
+		
+		while(number_used(message_n)) {
+			message_n += 2;
+			if (message_n == 32) message_n = 0;
+		}
+		
+		uint64_t dest_addr = routed_dest_address64();
+			
+		char msg[] = {0b00100000 | message_n, (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
+		message_send64(mrf, dest_addr, msg);
+	}
 }
