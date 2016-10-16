@@ -174,13 +174,13 @@ void handle_flooding(void) {
 			printf("\nAddr: %X\tNumber: %i\tAttempts: %i", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.attempts);
 			if(tmp_list.address == dest_addr && tmp_list.number == message_number) {
 				tmp_list.attempts--;
-				if(tmp_list.attempts != 0) {
-					tmp_queue.push(tmp_list);
-				} else if(tmp_list.self == true) {
-					tmp_list.active = false;
-					tmp_queue.push(tmp_list);
+				if(tmp_list.attempts == 0) {
+					if(tmp_list.self == true) {
+						tmp_list.active = false;
+						tmp_queue.push(tmp_list);
+					}
+					break;
 				}
-				break;
 			}
 			tmp_queue.push(tmp_list);
 		}
