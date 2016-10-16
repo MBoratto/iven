@@ -119,8 +119,8 @@ int main() {
 	
 	routing_init(addr64);
 	
-	printf("%X%X%X%X\n", (word)((addr64>>48) & 0xffff), (word)((addr64>>32) & 0xffff), (word)((addr64>>16) & 0xffff), (word)(addr64 & 0xffff));
-	printf("%X\n\n", mrf.get_pan());
+	printf("Endereço: %X%X%X%X\n", (word)((addr64>>48) & 0xffff), (word)((addr64>>32) & 0xffff), (word)((addr64>>16) & 0xffff), (word)(addr64 & 0xffff));
+	printf("PAN: %X\n\n", mrf.get_pan());
 
 	// uncomment if you want to receive any packet on this channel
 	mrf.set_promiscuous(true);
@@ -142,7 +142,7 @@ int main() {
 			piLock(BUTTON_KEY);
 				txTriggered = 0;
 			piUnlock(BUTTON_KEY);
-			printf("\ntxxxing...\n");
+			printf("\nAção recebida. Enviando mensagem...\n");
 			
 			while(number_used(message_n)) {
 				message_n += 2;
@@ -155,13 +155,16 @@ int main() {
 		}
 		if(millis() > sendTime) {
 			std::queue<message_list> message_queue = get_queue();
-
+			
+			if(!message_queue.empty()) {
+				printf("\n##############Fila de envio...##############\n");
+			}
+			
 			while(!message_queue.empty()) {
 				message_list tmp_list = message_queue.front();
 				message_queue.pop();
 				if(tmp_list.active) {
-					printf("\n##############txxxing queue...##############\n");
-					printf("\nAddr: %X\tNumber: %i\t MSG: %i\t From: %X", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0], tmp_list.message[8]);
+					printf("\nRemetente: %X\tDestinatario: %X\tNumero: %i\t Tipo: %i", tmp_list.message[8], (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0] & 0xe0);
 					mrf.send64(tmp_list.address, (char *)tmp_list.message);
 				}
 				delay(300);
@@ -181,7 +184,7 @@ void handle_rx() {
 		handle_packets(mrf, &client_handler);
 	piUnlock(TIMER_KEY);
 	
-    printf("\nreceived a packet ");
+    /*printf("\nreceived a packet ");
     printf("%d", mrf.get_rxinfo()->frame_length);
     printf(" bytes long\n");
     
@@ -200,23 +203,23 @@ void handle_rx() {
     printf("\nLQI/RSSI=");
     printf("%d", mrf.get_rxinfo()->lqi);
     printf("/");
-    printf("%d\n", mrf.get_rxinfo()->rssi);
+    printf("%d\n", mrf.get_rxinfo()->rssi);*/
 }
 
 void handle_tx() {
-    if (mrf.get_txinfo()->tx_ok) {
+    /*if (mrf.get_txinfo()->tx_ok) {
         printf("TX went ok, got ack\n");
     } else {
         printf("TX failed after ");
         printf("%d", mrf.get_txinfo()->retries);
         printf(" retries\n");
-    }
+    }*/
 }
 
 void client_handler(void) {
-	printf("Handling Client Messages");
+	printf("Tratando mensagem de servidor");
 	if(mrf.get_rxinfo()->rx_data[9] == 2) {
-		printf("\nEnviando localização");
+		printf("\nEnviando localização...");
 		
 		while(number_used(message_n)) {
 			message_n += 2;
