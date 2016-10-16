@@ -139,7 +139,7 @@ void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 			printf("\nMessage on queue");
 			send_nack(mrf, src_address, dest_address);// return node ack
 			printf("\nNack Sent!\n");
-		} else if (routed_dest_address64() != self_address) {
+		} else {
 			printf("\nFlood! \n\n");
 			send_flood(mrf, src_address, dest_address);
 		}
