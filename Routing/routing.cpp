@@ -119,16 +119,11 @@ void handle_message(void (*msg_handler)(void)) {
 
 void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 	if(self_address == dest_address) {
-		if(new_message()) {
-			// handle message and return ack
-			printf("\nMessage Arrived!\n\n");
-			uint64_t dest_addr = routed_dest_address64();
-			send_ack(mrf, dest_addr, self_address);
-			handle_message(msg_handler);
-		} else {
-			printf("\n Flood! \n\n");
-			send_flood(mrf, src_address, self_address);
-		}
+		// handle message and return ack
+		printf("\nMessage Arrived!\n\n");
+		uint64_t dest_addr = routed_dest_address64();
+		send_ack(mrf, dest_addr, self_address);
+		handle_message(msg_handler);
 	} else {
 		if(new_message()) {
 			message_list tmp_list;
