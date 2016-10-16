@@ -121,8 +121,8 @@ void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 			// handle message and return ack
 			printf("\nMessage Arrived!\n\n");
 			uint64_t dest_addr = routed_dest_address64();
-			handle_message(msg_handler);
 			send_ack(mrf, dest_addr, self_address);
+			handle_message(msg_handler);
 		} else {
 			printf("\n Flood! \n\n");
 			send_flood(mrf, src_address, dest_address);
@@ -354,9 +354,11 @@ void update_timer (void) {
 					if(range.first != range.second) {
 						for(auto it2 = range.first; it2 != range.second; it2++) {
 							if(it2->second.number == (it->second.number + 1)) {
+								printf("\nErasing self message (ack already arrived) - Timeout\n");
 								message_map.erase(it);
 								break;
 							} else {
+								printf("\nRe-sending message (no ack arrived) - Timeout\n");
 								it->second.lifetime = 60;
 								std::queue<message_list> tmp_queue;
 								while(!message_queue.empty()) {
@@ -375,9 +377,11 @@ void update_timer (void) {
 						}
 					}
 				} else {
+					printf("\nErasing self ack message - Timeout\n");
 					message_map.erase(it);
 				}
 			} else {
+				printf("\nErasing other nodes messages - Timeout\n");
 				message_map.erase(it);
 			}
 		}

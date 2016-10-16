@@ -224,7 +224,7 @@ void client_handler(void) {
 		
 		uint64_t dest_addr = routed_dest_address64();
 			
-		char msg[] = {(char)(0b00100000 | message_n), (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
+		char msg[] = {(char)(0b00100000 | message_n), (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), 0b00000011, '\0'};
 		message_send64(mrf, dest_addr, msg);
 	}
 }
