@@ -164,6 +164,7 @@ int main() {
 					printf("\nAddr: %X\tNumber: %i\t MSG: %i\t From: %X", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0], tmp_list.message[8]);
 					mrf.send64(tmp_list.address, (char *)tmp_list.message);
 				}
+				delay(300);
 			}
 			sendTime = millis() + 500;
 		}

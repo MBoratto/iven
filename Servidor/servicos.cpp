@@ -141,12 +141,14 @@ int main() {
 				txTriggered = 0;
 			piUnlock(BUTTON_KEY);
 			printf("\ntxxxing...\n");
-			char msg[] = {(char)(0b00100000 | message_n), (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), 0b00000010, '\0'};
-			message_send64(mrf, 0x1111111111111112, msg);
-			do {
+			while(number_used(message_n)) {
 				message_n += 2;
 				if (message_n == 32) message_n = 0;
-			} while(number_used(message_n));
+			}
+			
+			char msg[] = {(char)(0b00100000 | message_n), (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), 0b00000010, '\0'};
+			message_send64(mrf, 0x1111111111111112, msg);
+
 		}
 		if(millis() > sendTime) {
 			std::queue<message_list> message_queue = get_queue();
@@ -159,6 +161,7 @@ int main() {
 					printf("\nAddr: %X\tNumber: %i\t MSG: %i\t From: %X", (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0], tmp_list.message[8]);
 					mrf.send64(tmp_list.address, (char *)tmp_list.message);
 				}
+				delay(300);
 			}
 			sendTime = millis() + 500;
 		}
