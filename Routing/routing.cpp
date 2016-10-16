@@ -362,8 +362,6 @@ void update_timer (void) {
 						message_queue.push(tmp_queue.front());
 						tmp_queue.pop();
 					}
-				} else {
-					message_map.erase(it);
 				}
 			} else {
 				message_map.erase(it);
