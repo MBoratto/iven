@@ -25,6 +25,7 @@ typedef struct _message_lifetime {
 	char lifetime;
 } message_lifetime;
 
+bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data);
 void handle_packets(Mrf24j& mrf, void (*msg_handler)(void));
 void handle_message(void (*msg_handler)(void));
 void handle_routing(Mrf24j& mrf, void (*msg_handler)(void));

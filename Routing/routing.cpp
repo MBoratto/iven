@@ -15,7 +15,7 @@ std::queue<message_list> get_queue(void) {
 bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data) {
 	if(new_message()) {
 		message_list tmp_list;
-		for(int i = 0; i < strlen(data); i++) {
+		for(unsigned int i = 0; i < strlen(data); i++) {
 			tmp_list.message[i] = data[i];
 		}
 		tmp_list.message[strlen(data)] = '\0';
