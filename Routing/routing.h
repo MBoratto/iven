@@ -9,8 +9,8 @@
 #include <utility>
 #include "../MRF24J/mrf24j.h"
 
-#define NUM_ATTEMPTS 3
-#define MSG_LIFETIME 60
+#define NUM_ATTEMPTS 1
+#define MSG_LIFETIME 30
 
 typedef struct _message_list {
 	uint8_t message[116];
