@@ -88,6 +88,7 @@ const int pin_interrupt = 5; // default interrupt pin on ATmega8/168/328
 Mrf24j mrf(pin_reset, pin_cs, pin_interrupt);
 
 uint64_t addr64;
+uint8_t message_n;
 
 int main() {
 	wiringPiSetupGpio();
@@ -133,7 +134,7 @@ int main() {
 	wiringPiISR(pin_interrupt, INT_EDGE_BOTH, &interrupt_routine); // interrupt 0 equivalent to pin 2(INT0) on ATmega8/168/328
 	
 	unsigned int sendTime = 0;
-	uint8_t message_n = 0;
+	message_n = 0;
 	
 	for(;;) {
 		mrf.check_flags(&handle_rx, &handle_tx);
@@ -148,7 +149,7 @@ int main() {
 				if (message_n == 32) message_n = 0;
 			}
 			
-			char msg[] = {0b00100000 | message_n, (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
+			char msg[] = {(char)(0b00100000 | message_n), (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
 			message_send64(mrf, 0x1111111111111111, msg);
 			
 		}
@@ -223,7 +224,7 @@ void client_handler(void) {
 		
 		uint64_t dest_addr = routed_dest_address64();
 			
-		char msg[] = {0b00100000 | message_n, (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
+		char msg[] = {(char)(0b00100000 | message_n), (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
 		message_send64(mrf, dest_addr, msg);
 	}
 }
