@@ -14,7 +14,7 @@
 void interrupt_routine(void);
 void handle_rx(void);
 void handle_tx(void);
-void server_handler(void);
+void server_handler(uint8_t * msg);
 
 const int pin_button1 = 26;
 const int pin_button2 = 21;
@@ -157,8 +157,8 @@ int main() {
 				message_list tmp_list = message_queue.front();
 				message_queue.pop();
 				if(tmp_list.active) {
-					//printf("\n##############Fila de envio...##############\n");
-					//printf("\nRemetente: %X\tDestinatario: %X\tNumero: %i\t Tipo: %i", tmp_list.message[8], (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0]);
+					printf("\n##############Fila de envio...##############\n");
+					printf("\nRemetente: %X\tDestinatario: %X\tNumero: %i\t Tipo: %i", tmp_list.message[8], (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0]);
 					mrf.send64(tmp_list.address, (char *)tmp_list.message);
 				}
 				delay(300);
@@ -210,7 +210,7 @@ void handle_tx() {
     }*/
 }
 
-void server_handler(void) {
+void server_handler(uint8_t * msg) {
 	printf("Tratando mensagem de cliente\n");
 	char location[64];
 	char timestamp[33];
@@ -221,7 +221,7 @@ void server_handler(void) {
 	FILE * file = fopen(location, "w+");
 	uint64_t destino = mrf.get_dest_address64();
 	uint64_t origem = routed_dest_address64();
-	fprintf(file, "%X%X%X%X\t%X%X%X%X\t%i", (word)((origem>>48) & 0xffff), (word)((origem>>32) & 0xffff), (word)((origem>>16) & 0xffff), (word)(origem & 0xffff), (word)((destino>>48) & 0xffff), (word)((destino>>32) & 0xffff), (word)((destino>>16) & 0xffff), (word)(destino & 0xffff), mrf.get_rxinfo()->rx_data[9]);
+	fprintf(file, "%X%X%X%X\t%X%X%X%X\t%i", (word)((origem>>48) & 0xffff), (word)((origem>>32) & 0xffff), (word)((origem>>16) & 0xffff), (word)(origem & 0xffff), (word)((destino>>48) & 0xffff), (word)((destino>>32) & 0xffff), (word)((destino>>16) & 0xffff), (word)(destino & 0xffff), msg[9]);
 	fclose(file);
 	printf("Dados postados e notificações enviadas!");
 	//system("sudo python ../Notifications/sinistronotifica.py");
