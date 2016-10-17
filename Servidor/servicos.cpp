@@ -157,8 +157,8 @@ int main() {
 				message_list tmp_list = message_queue.front();
 				message_queue.pop();
 				if(tmp_list.active) {
-					printf("\n##############Fila de envio...##############\n");
-					printf("\nRemetente: %X\tDestinatario: %X\tNumero: %i\t Tipo: %i", tmp_list.message[8], (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0]);
+					//printf("\n##############Fila de envio...##############\n");
+					//printf("\nRemetente: %X\tDestinatario: %X\tNumero: %i\t Tipo: %i", tmp_list.message[8], (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0]);
 					mrf.send64(tmp_list.address, (char *)tmp_list.message);
 				}
 				delay(300);
@@ -211,7 +211,7 @@ void handle_tx() {
 }
 
 void server_handler(void) {
-	printf("Tratando mensagem de cliente");
+	printf("Tratando mensagem de cliente\n");
 	char location[64];
 	char timestamp[33];
 	sprintf(timestamp, "%u", millis());
