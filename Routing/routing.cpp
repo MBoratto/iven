@@ -63,8 +63,8 @@ bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data) {
 }
 
 void handle_packets(Mrf24j& mrf, void (*msg_handler)(void)) {
-	printf("====================================\n");
-	printf("Pacote recebido! Tratando...\n\n");
+	//printf("====================================\n");
+	//printf("Pacote recebido! Tratando...\n\n");
 	
 	data_length = mrf.get_rxinfo()->frame_length - 23;
 	
@@ -80,37 +80,37 @@ void handle_packets(Mrf24j& mrf, void (*msg_handler)(void)) {
 	dest_address = mrf.get_dest_address64();
 	src_address = mrf.get_src_address64();
 	
-	printf("Remetente: %X\tDestinatário: %X\tMeu endereço: %X\tNumero: %i\t Tipo: %i", (int)(routed_dest_address64() & 0xff), (int)(dest_address & 0xff), (int)(self_address & 0xff), message_number, routing_control);
-	printf("\n------------------------------------\n");
+	//printf("Remetente: %X\tDestinatário: %X\tMeu endereço: %X\tNumero: %i\t Tipo: %i", (int)(routed_dest_address64() & 0xff), (int)(dest_address & 0xff), (int)(self_address & 0xff), message_number, routing_control);
+	//printf("\n------------------------------------\n");
 	
 	switch (routing_control) {
 		case 0:
-			printf("\nTratando mensagem\n");
+			//printf("\nTratando mensagem\n");
 			handle_message(msg_handler);
 			break;
 		case 1: 
-			printf("\nTratando roteamento\n");
+			//printf("\nTratando roteamento\n");
 			handle_routing(mrf, msg_handler);
 			break;
 		case 2:
-			printf("\nTratando enchente\n");
+			//printf("\nTratando enchente\n");
 			handle_flooding();
 			break;
 		case 3:
-			printf("\nTratando confirmação de nó\n");
+			//printf("\nTratando confirmação de nó\n");
 			handle_nack();
 			break;
 		case 4:
-			printf("\nTratando confirmação final\n");
+			//printf("\nTratando confirmação final\n");
 			handle_ack(mrf);
 			break;
 		case 5:
-			printf("\nHandling scan \n");
+			//printf("\nHandling scan \n");
 			handle_scan();
 			break;
 	}
-	printf("------------------------------------\n");
-	printf("====================================\n\n");
+	//printf("------------------------------------\n");
+	//printf("====================================\n\n");
 }
 
 void handle_message(void (*msg_handler)(void)) {
@@ -123,17 +123,17 @@ void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 	if(self_address == dest_address) {
 		if(new_message()) {
 			// handle message and return ack
-			printf("\nMensagem recebida!\n\n");
+			//printf("\nMensagem recebida!\n\n");
 			uint64_t dest_addr = routed_dest_address64();
 			send_ack(mrf, dest_addr, self_address);
 			handle_message(msg_handler);
 		} else {
-			printf("\n Enchente!\n\n");
+			//printf("\n Enchente!\n\n");
 			send_flood(mrf, src_address, self_address);
 		}
 	} else {
 		if(new_message()) {
-			printf("\nRoteando mensagem para destino final\n\n");
+			//printf("\nRoteando mensagem para destino final\n\n");
 			message_list tmp_list;
 			for(int i = 0; i < data_length; i++) {
 				tmp_list.message[i] = rx_data[i];
@@ -155,7 +155,7 @@ void handle_routing(Mrf24j& mrf, void (*msg_handler)(void)) {
 			send_nack(mrf, src_address, dest_address);// return node ack
 			//printf("\nNack Sent!\n");
 		} else {
-			printf("\nEnchente!\n\n");
+			//printf("\nEnchente!\n\n");
 			send_flood(mrf, src_address, dest_address);
 		}
 	}
@@ -366,13 +366,13 @@ int handle_scan(void) {
 }
 
 void send_flood(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
-	printf("\nEnviando enchente...\nDestinatário: %X\tEndereço de mensagem: %X\tNumero: %i\n", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
+	//printf("\nEnviando enchente...\nDestinatário: %X\tEndereço de mensagem: %X\tNumero: %i\n", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char flood_msg[] = {(char)(0b01000000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(src_addr, flood_msg);
 }
 
 void send_nack(Mrf24j& mrf, uint64_t src_addr, uint64_t msg_address) {
-	printf("\n\nEnviando confirmação de no...\nDestinatário: %X\tEndereço de mensagem: %X\tNumero: %i\n", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
+	//printf("\n\nEnviando confirmação de no...\nDestinatário: %X\tEndereço de mensagem: %X\tNumero: %i\n", (int)(src_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char nack_msg[] = {(char)(0b01100000 | message_number), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	mrf.send64(src_addr, nack_msg);
 }
@@ -383,7 +383,7 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	tmp_message.lifetime = MSG_LIFETIME;
 	message_map.insert({dest_addr, tmp_message});
 
-	printf("\nEnviando confirmação final...\nDestinatário: %X\tEndereço de mensagem: %X\tNumero: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
+	//printf("\nEnviando confirmação final...\nDestinatário: %X\tEndereço de mensagem: %X\tNumero: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	
 	//mrf.send64(dest_addr, ack_msg);
