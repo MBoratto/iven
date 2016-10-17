@@ -157,6 +157,8 @@ typedef struct _rx_info_t{
     uint8_t rx_data[116]; //max data length = (127 aMaxPHYPacketSize - 2 Frame control - 1 sequence number - 2 panid - 2 shortAddr Destination - 2 shortAddr Source - 2 FCS)
     uint8_t lqi;
     uint8_t rssi;
+    uint64_t src_addr;
+    uint64_t dest_addr;
 } rx_info_t;
 
 /**
@@ -191,9 +193,6 @@ class Mrf24j
         
         void address64_write(uint64_t address64);
         uint64_t address64_read(void);
-        
-        uint64_t get_src_address64(void);
-        uint64_t get_dest_address64(void);
 
         void set_interrupts(void);
 

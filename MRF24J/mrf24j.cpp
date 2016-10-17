@@ -125,30 +125,6 @@ uint64_t Mrf24j::address64_read(void) {
     return a64h << 8 | read_short(MRF_EADR0);
 }
 
-uint64_t Mrf24j::get_src_address64(void) {
-	uint64_t src_addr = 0;
-	
-	for(int i = 0; i < 8; i++) {
-		
-			src_addr |= (uint64_t)read_long(0x30e + i) << 8*i; // recebe e armazena endereço da fonte
-		
-	}
-	
-	return src_addr;
-}
-
-uint64_t Mrf24j::get_dest_address64(void) {
-	uint64_t dest_addr = 0;
-	
-	for(int i = 0; i < 8; i++) {
-		
-			dest_addr |= (uint64_t)read_long(0x306 + i) << 8*i; // recebe e armazena endereço da fonte
-		
-	}
-	
-	return dest_addr;
-}
-
 /**
  * Simple send 16, with acks, not much of anything.. assumes src16 and local pan only.
  * @param data
@@ -321,6 +297,18 @@ void Mrf24j::interrupt_handler(void) {
             }
         }
         
+		uint64_t src_addr = 0;
+		
+		for(int i = 0; i < 8; i++) {		
+			src_addr |= (uint64_t)read_long(0x30e + i) << 8*i; // recebe e armazena endereço da fonte
+		}
+
+		uint64_t dest_addr = 0;
+		
+		for(int i = 0; i < 8; i++) {	
+			dest_addr |= (uint64_t)read_long(0x306 + i) << 8*i; // recebe e armazena endereço da fonte	
+		}
+
         int bytes_MHR_R, bytes_nodata_R;
  
         //Check MHR size through frame control
@@ -346,6 +334,8 @@ void Mrf24j::interrupt_handler(void) {
             rx_info.rx_data[rd_ptr++] = read_long(0x301 + bytes_MHR_R + i);
         }
 
+		rx_info.dest_addr = dest_addr;
+		rx_info.src_addr = src_addr;
         rx_info.frame_length = frame_length;
         // same as datasheet 0x301 + (m + n + 2) <-- frame_length
         rx_info.lqi = read_long(0x301 + frame_length);

@@ -81,8 +81,8 @@ void handle_packets(Mrf24j& mrf, void (*msg_handler)(uint8_t * msg)) {
 	message_number = rx_data[0] & 0x1f;
 	printf("Control packet: %i\tRouting Control: %i\tMsg #: %i\n\n", rx_data[0], routing_control, message_number);
 
-	dest_address = mrf.get_dest_address64();
-	src_address = mrf.get_src_address64();
+	dest_address = rx_info.dest_addr;
+	src_address = rx_info.src_addr;
 	
 	printf("Remetente: %X\tDestinatário: %X\tMeu endereço: %X\tNumero: %i\t Tipo: %i", (int)(routed_dest_address64() & 0xff), (int)(dest_address & 0xff), (int)(self_address & 0xff), message_number, routing_control);
 	printf("\n------------------------------------\n");
