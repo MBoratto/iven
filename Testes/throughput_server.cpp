@@ -115,7 +115,7 @@ int main() {
 	  
 	mrf.set_pan(0xcafe);
 	// This is _our_ address
-	mrf.address64_write(0x1111111111111112); 
+	mrf.address64_write(0x1111111111111111); 
 	
 	addr64 = mrf.address64_read();
 	
@@ -135,7 +135,6 @@ int main() {
 
 	wiringPiISR(pin_interrupt, INT_EDGE_FALLING, &interrupt_routine); // interrupt 0 equivalent to pin 2(INT0) on ATmega8/168/328
 	
-	unsigned int sendTime = 0;
 	message_n = 0;
 	
 	for(;;) {

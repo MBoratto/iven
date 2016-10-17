@@ -135,7 +135,7 @@ int main() {
 
 	wiringPiISR(pin_interrupt, INT_EDGE_FALLING, &interrupt_routine); // interrupt 0 equivalent to pin 2(INT0) on ATmega8/168/328
 	
-	unsigned int sendTime = 0, time_to_send = millis() + 1000;
+	unsigned int time_to_send = millis() + 1000;
 	message_n = 0;
 	
 	for(;;) {
