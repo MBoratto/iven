@@ -11,6 +11,7 @@
 
 #define NUM_ATTEMPTS 1
 #define MSG_LIFETIME 10
+#define FLOOD_IGNORE_LIMIT 3
 
 typedef struct _message_list {
 	uint8_t message[116];
@@ -23,6 +24,7 @@ typedef struct _message_list {
 typedef struct _message_lifetime {
 	char number;
 	char lifetime;
+	char flood_trial;
 } message_lifetime;
 
 typedef struct _message_block {
