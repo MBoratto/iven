@@ -219,7 +219,7 @@ void server_handler(uint8_t * msg) {
 	strcat(location, timestamp);
 	strcat(location, ".txt");
 	FILE * file = fopen(location, "w+");
-	uint64_t destino = mrf.get_dest_address64();
+	uint64_t destino = get_dest_address64();
 	uint64_t origem = routed_dest_address64();
 	fprintf(file, "%X%X%X%X\t%X%X%X%X\t%i", (word)((origem>>48) & 0xffff), (word)((origem>>32) & 0xffff), (word)((origem>>16) & 0xffff), (word)(origem & 0xffff), (word)((destino>>48) & 0xffff), (word)((destino>>32) & 0xffff), (word)((destino>>16) & 0xffff), (word)(destino & 0xffff), msg[9]);
 	fclose(file);

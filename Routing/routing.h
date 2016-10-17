@@ -32,6 +32,7 @@ typedef struct _message_block {
 	char number;
 } message_block;
 
+uint64_t get_dest_address64();
 bool number_used(uint8_t msg_number);
 void routing_init(uint64_t self);
 bool message_send64(Mrf24j& mrf, uint64_t dest64, char * data);

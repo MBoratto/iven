@@ -14,6 +14,10 @@ void routing_init(uint64_t self) {
 	self_address = self;
 }
 
+uint64_t get_dest_address64() {
+	return dest_address;
+}
+
 bool number_used(uint8_t msg_number) {
 	auto range = message_map.equal_range(self_address);
 	if(range.first != range.second) {
