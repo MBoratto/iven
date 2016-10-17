@@ -392,6 +392,25 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	
 	//mrf.send64(dest_addr, ack_msg);
 	
+	// Remove corresponding message from routing queue
+	std::queue<message_list> tmp_queue;
+	printf("\n***********Message Queue***********\n");
+	while(!message_queue.empty()) {
+		message_list tmp_list = message_queue.front();
+		message_queue.pop();
+		printf("\nAddr: %X\tNumber: %i", (int)(tmp_list.address & 0xff), tmp_list.number);
+		if(tmp_list.address == msg_address && tmp_list.number == message_number) {
+			printf("\n\nPop messsage from queue\n");
+			break;
+		}
+		tmp_queue.push(tmp_list);
+	}
+	while(!tmp_queue.empty()) {
+		message_queue.push(tmp_queue.front());
+		tmp_queue.pop();
+	}
+	printf("\n***********************************\n");
+	
 	message_list tmp_list;
 	for(int i = 0; i < 10; i++) {
 		tmp_list.message[i] = ack_msg[i];
