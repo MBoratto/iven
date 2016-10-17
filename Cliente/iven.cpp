@@ -13,7 +13,7 @@
 void interrupt_routine(void);
 void handle_rx(void);
 void handle_tx(void);
-void client_handler(void);
+void client_handler(uint8_t * msg);
 
 const int pin_button1 = 26;
 const int pin_button2 = 21;
@@ -216,9 +216,9 @@ void handle_tx() {
     }*/
 }
 
-void client_handler(void) {
+void client_handler(uint8_t * msg) {
 	printf("Tratando mensagem de servidor");
-	if(mrf.get_rxinfo()->rx_data[9] == 2) {
+	if(msg[9] == 2) {
 		printf("\nEnviando localização...");
 		
 		while(number_used(message_n)) {

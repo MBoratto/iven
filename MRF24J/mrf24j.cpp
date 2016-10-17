@@ -23,7 +23,7 @@ static boolean bufPHY = false; // flag to buffer all bytes in PHY Payload, or no
 volatile uint8_t flag_got_rx;
 volatile uint8_t flag_got_tx;
 
-static rx_info_t rx_info;
+static std::queue<rx_info_t> rx_info_queue;
 static tx_info_t tx_info;
 
 
@@ -292,11 +292,11 @@ void Mrf24j::init(void) {
     delay(1); // delay at least 192usec
 }
 
-void Mrf24j::eraseRxBuff(void) {
+/*void Mrf24j::eraseRxBuff(void) {
 	for(int i = 0; i < 116 ; i++) {
 		rx_info.rx_data[i] = 0;
 	}
-}
+}*/
 
 /**
  * Call this from within an interrupt handler connected to the MRFs output
@@ -307,7 +307,7 @@ void Mrf24j::eraseRxBuff(void) {
 void Mrf24j::interrupt_handler(void) {
     uint8_t last_interrupt = read_short(MRF_INTSTAT);
     if (last_interrupt & MRF_I_RXIF) {
-        
+        rx_info_t rx_info;
         // read out the packet data...
         rx_disable();
         // read start of rxfifo for, has 2 bytes more added by FCS. frame_length = m + n + 2
@@ -336,7 +336,7 @@ void Mrf24j::interrupt_handler(void) {
 			bytes_nodata_R = frame_length;
 		}
 		
-		eraseRxBuff();
+		//eraseRxBuff();
 
         // buffer data bytes
         int rd_ptr = 0;
@@ -351,6 +351,8 @@ void Mrf24j::interrupt_handler(void) {
         rx_info.lqi = read_long(0x301 + frame_length);
         // same as datasheet 0x301 + (m + n + 3) <-- frame_length + 1
         rx_info.rssi = read_long(0x301 + frame_length + 1);
+        
+        rx_info_queue.push(rx_info);
         
         flag_got_rx++;
 
@@ -375,11 +377,11 @@ void Mrf24j::interrupt_handler(void) {
 void Mrf24j::check_flags(void (*rx_handler)(void), void (*tx_handler)(void)){
     // TODO - we could check whether the flags are > 1 here, indicating data was lost?
     if (flag_got_rx) {
-        flag_got_rx = 0;
+        flag_got_rx--;
         rx_handler();
     }
     if (flag_got_tx) {
-        flag_got_tx = 0;
+        flag_got_tx--;
         tx_handler();
     }
 }
@@ -395,8 +397,8 @@ void Mrf24j::set_promiscuous(boolean enabled) {
     }
 }
 
-rx_info_t * Mrf24j::get_rxinfo(void) {
-    return &rx_info;
+std::queue<rx_info_t> * Mrf24j::get_rxinfo(void) {
+    return &rx_info_queue;
 }
 
 tx_info_t * Mrf24j::get_txinfo(void) {
@@ -407,7 +409,7 @@ uint8_t * Mrf24j::get_rxbuf(void) {
     return rx_buf;
 }
 
-int Mrf24j::rx_datalength(void) {
+int Mrf24j::rx_datalength(rx_info_t rx_info) {
     return rx_info.frame_length - bytes_nodata;
 }
 

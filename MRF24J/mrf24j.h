@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <queue>
 
 typedef bool boolean;
 typedef uint8_t byte;
@@ -209,13 +210,13 @@ class Mrf24j
         /** If you want to throw away rx data */
         void rx_flush(void);
 
-        rx_info_t * get_rxinfo(void);
+        std::queue<rx_info_t> * get_rxinfo(void);
 
         tx_info_t * get_txinfo(void);
 
         uint8_t * get_rxbuf(void);
 
-        int rx_datalength(void);
+        int rx_datalength(rx_info_t rx_info);
 
         void set_ignoreBytes(int ib);
 
