@@ -13,7 +13,7 @@
 void interrupt_routine(void);
 void handle_rx(void);
 void handle_tx(void);
-void client_handler(void);
+void client_handler(uint8_t * msg);
 
 const int pin_button1 = 26;
 const int pin_button2 = 21;
@@ -203,7 +203,7 @@ void handle_tx() {
     }*/
 }
 
-void client_handler(void) {
+void client_handler(uint8_t * msg) {
 	printf("Mensagens recebidas: %d", num_messages++);
 	/*printf("Tratando mensagem de servidor");
 	if(mrf.get_rxinfo()->rx_data[9] == 2) {
