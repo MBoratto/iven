@@ -154,7 +154,7 @@ int main() {
 			mrf.send64(0x1111111111111111, msg);
 			
 		}
-		delay(100);
+		delay(200);
 	}
 }
 

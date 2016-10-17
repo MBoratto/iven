@@ -204,7 +204,8 @@ void handle_tx() {
 }
 
 void client_handler(uint8_t * msg) {
-	printf("Mensagens recebidas: %d", num_messages++);
+	num_messages++;
+	printf("Mensagens recebidas: %d", num_messages);
 	/*printf("Tratando mensagem de servidor");
 	if(mrf.get_rxinfo()->rx_data[9] == 2) {
 		printf("\nEnviando localização...");
