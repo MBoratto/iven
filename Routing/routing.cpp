@@ -383,7 +383,7 @@ void send_ack(Mrf24j& mrf, uint64_t dest_addr, uint64_t msg_address) {
 	tmp_message.lifetime = MSG_LIFETIME;
 	message_map.insert({dest_addr, tmp_message});
 
-	//printf("\nEnviando confirmação final...\nDestinatário: %X\tEndereço de mensagem: %X\tNumero: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
+	printf("\nEnviando confirmação final...\nDestinatário: %X\tEndereço de mensagem: %X\tNumero: %i\n", (int)(dest_addr & 0xff), (int)(msg_address & 0xff), message_number);
 	char ack_msg[] = {(char)(0b10000000 | (message_number + 1)), (char)((msg_address>>56) & 0xff), (char)((msg_address>>48) & 0xff), (char)((msg_address>>40) & 0xff), (char)((msg_address>>32) & 0xff), (char)((msg_address>>24) & 0xff), (char)((msg_address>>16) & 0xff), (char)((msg_address>>8) & 0xff), (char)(msg_address & 0xff), '\0'};
 	
 	//mrf.send64(dest_addr, ack_msg);
