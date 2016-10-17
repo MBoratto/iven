@@ -135,10 +135,30 @@ int main() {
 
 	wiringPiISR(pin_interrupt, INT_EDGE_FALLING, &interrupt_routine); // interrupt 0 equivalent to pin 2(INT0) on ATmega8/168/328
 	
+	unsigned int sendTime = 0;
 	message_n = 0;
 	
 	for(;;) {
 		mrf.check_flags(&handle_rx, &handle_tx);
+		if(millis() > sendTime) {
+			std::queue<message_list> message_queue = get_queue();
+			
+			if(!message_queue.empty()) {
+				//printf("\n##############Fila de envio...##############\n");
+			}
+			
+			while(!message_queue.empty()) {
+				message_list tmp_list = message_queue.front();
+				message_queue.pop();
+				if(tmp_list.active) {
+					//printf("\nRemetente: %X\tDestinatario: %X\tNumero: %i\t Tipo: %i", tmp_list.message[8], (int)(tmp_list.address & 0xff), tmp_list.number, tmp_list.message[0] & 0xe0);
+					send_time = micros();
+					mrf.send64(tmp_list.address, (char *)tmp_list.message);
+				}
+				//delay(300);
+			}
+			//sendTime = millis() + 500;
+		}
 	}
 }
 
