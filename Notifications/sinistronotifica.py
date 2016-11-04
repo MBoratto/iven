@@ -1,9 +1,7 @@
 import time
-import RPi.GPIO as GPIO
 import pycurl, json
+import sys
 
-
-GPIO.setmode(GPIO.BCM)
 # tempo entre notificoes em segundo
 
 DELAY = 20
@@ -44,14 +42,14 @@ c.setopt(c.POSTFIELDS, postfields)
 #c.setopt(c.WRITEFUNCTION, buffer.write)
 
 # uncomment to see the post sent
-c.setopt(c.VERBOSE, True)
+#c.setopt(c.VERBOSE, True)
 
 try:
 	# Loop infinito que envia push notificantions a cada 20 segundos 
-	while True:
 		c.perform()
-		print(pushMessage)
+		#print(pushMessage)
 		# tempo de espera para envio de nova mensagem
-		time.sleep(DELAY)
+		c.close()
+		sys.exit()
 except KeyboardInterrupt:
-        GPIO.cleanup()
+        pass

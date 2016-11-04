@@ -1,6 +1,8 @@
 #include <wiringPi.h>
 #include <bcm2835.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../MRF24J/mrf24j.h"
 #include "../Routing/routing.h"
 
@@ -109,7 +111,7 @@ int main() {
 	  
 	mrf.set_pan(0xcafe);
 	// This is _our_ address
-	mrf.address64_write(0x1111111111111112); 
+	mrf.address64_write(0x1111111111111111); 
 	
 	uint64_t addr64 = mrf.address64_read();
 	
@@ -137,7 +139,7 @@ int main() {
 			piUnlock(BUTTON_KEY);
 			printf("\ntxxxing...\n");
 			char msg[] = {0b00100000, (char)((addr64>>56) & 0xff), (char)((addr64>>48) & 0xff), (char)((addr64>>40) & 0xff), (char)((addr64>>32) & 0xff), (char)((addr64>>24) & 0xff), (char)((addr64>>16) & 0xff), (char)((addr64>>8) & 0xff), (char)(addr64 & 0xff), '\0'};
-			mrf.send64(0x1111111111111111, msg);
+			mrf.send64(0x1111111111111113, msg);
 		}
 		if(millis() > sendTime) {
 			std::queue<message_list> message_queue = get_queue();
@@ -200,4 +202,16 @@ void handle_tx() {
 
 void server_handler(void) {
 	printf("Handling Server Messages");
+	char location[64];
+	char timestamp[33];
+	sprintf(timestamp, "%u", millis());
+	strcpy(location, "/var/www/html/iven_status/");
+	strcat(location, timestamp);
+	strcat(location, ".txt");
+	FILE * file = fopen(location, "w+");
+	uint64_t origem = mrf.get_dest_address64();
+	uint64_t destino = routed_dest_address64();
+	fprintf(file, "%X%X%X%X\t%X%X%X%X\t%i", (word)((origem>>48) & 0xffff), (word)((origem>>32) & 0xffff), (word)((origem>>16) & 0xffff), (word)(origem & 0xffff), (word)((destino>>48) & 0xffff), (word)((destino>>32) & 0xffff), (word)((destino>>16) & 0xffff), (word)(destino & 0xffff), mrf.get_rxinfo()->rx_data[9]);
+	fclose(file);
+	//system("sudo python ../Notifications/sinistronotifica.py");
 }
